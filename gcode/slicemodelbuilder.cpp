@@ -469,7 +469,7 @@ namespace gcode
         std::vector<std::string> G01Strs = stringutil::splitString(G01Str," ");
 
         trimesh::vec3 tempEndPos = tempCurrentPos;
-        float tempEndE = tempCurrentE;
+        double tempEndE = tempCurrentE;
         SliceLineType tempType = tempCurrentType;
         bool havaXYZ = false;
 
@@ -487,7 +487,7 @@ namespace gcode
             }
             else if (componentStr[0] == 'E' || componentStr[0] == 'P')
             {
-                float e = std::atof(componentStr.substr(1).c_str());
+				double e = std::atof(componentStr.substr(1).c_str());
                 if (parseInfo.relativeExtrude)
                     tempEndE += e;
                 else

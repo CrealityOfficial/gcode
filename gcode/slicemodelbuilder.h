@@ -130,7 +130,7 @@ namespace gcode
 	protected:
 		SliceLineType  tempCurrentType;
 		int tempNozzleIndex;
-		float tempCurrentE;
+		double tempCurrentE;
 		float tempCurrentTime{ 0.0f };
 		float tempCurrentZ{ 0.0f };
 		float belowZ{ 0.0f };
