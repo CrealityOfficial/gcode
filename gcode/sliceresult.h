@@ -5,6 +5,7 @@
 #include "trimesh2/Box.h"
 #include <vector>
 #include <list>
+#include <memory>
 
 namespace gcode
 {
@@ -39,5 +40,5 @@ namespace gcode
     };
 }
 
-typedef std::shared_ptr<gcode::SliceResult> SliceResultPointer;
+typedef GCODE_API std::shared_ptr<gcode::SliceResult> SliceResultPointer;
 #endif // SLICE_RESULT_1590033290815_H
