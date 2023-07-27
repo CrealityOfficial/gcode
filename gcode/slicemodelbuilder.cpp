@@ -562,6 +562,8 @@ namespace gcode
                 m_gcodeLayerInfos.push_back(GcodeLayerInfo());
             }
 
+            //float material_density = parseInfo.material_density;
+            float material_diameter = parseInfo.material_diameter;
             if (!isG2G3 && SliceLineType::Travel != tempType && SliceLineType::React != tempType)
             {
                 //calculate width
@@ -570,17 +572,18 @@ namespace gcode
                 float len = trimesh::length(offset);
                 float h = m_gcodeLayerInfos.back().layerHight;
 
+                float material_s = PI * (material_diameter * 0.5) * (material_diameter * 0.5);
                 float width = 0.0f;
                 if (len != 0 && h != 0 && move.e > 0.0f)
                 {
-                    width = move.e * 2.405 / len / h;
+                    width = move.e * material_s / len / h;
                 }
 
                 //calculate flow
                 float flow = 0.0f;
                 if (move.e > 0.0f && len > 0)
                 {
-                    float r = 1.75 / 2;
+                    float r = material_diameter / 2;
                     flow = r* r* PI* move.e * move.speed / 60.0 / len;
                 }
 
@@ -710,16 +713,19 @@ namespace gcode
         trimesh::vec3 offset = tempCurrentPos - circlePos;
         offset.z = 0;
         float radius = trimesh::length(offset);
+        //float material_density = parseInfo.material_density;
+        float material_diameter = parseInfo.material_diameter;
+        float material_s = PI * (material_diameter * 0.5) * (material_diameter * 0.5);
         //计算弧长
         float len = theta * M_PIf * radius / 180.0;
-        float r = 1.75 / 2.0f;
+        float r = material_diameter / 2.0f;
         float flow = r * r * PI * e * tempSpeed / 60.0 / len;
 
         float h = m_gcodeLayerInfos.back().layerHight;
         float width = 0.0f;
         if (len != 0 && h != 0 && e > 0.0f)
         {
-            width = e * 2.405 / len / h;
+            width = e * material_s / len / h;
         }
 
         if (std::abs(m_gcodeLayerInfos.back().flow - flow) > 0.001 && len >= 1.0f)
@@ -1181,29 +1187,29 @@ namespace gcode
 		if (index1 > index2)
 			parseInfo.relativeExtrude = true;
 
-		float material_diameter = 1.75;
-		float material_density = 1.24;
-		if (regex_match_float(gcodeStr, "material_diameter", sm))
+		//float material_diameter = 1.75;
+		//float material_density = 1.24;
+		if (regex_match(gcodeStr, "Material Diameter", sm))
 		{
 			std::string tStr = sm[1];
-			material_diameter = atof(tStr.c_str()); //gap
+            parseInfo.material_diameter = atof(tStr.c_str()); //gap
 		}
-		if (regex_match_float(gcodeStr, "material_density", sm))
+		if (regex_match(gcodeStr, "Material Density", sm))
 		{
 			std::string tStr = sm[1];
-			material_density = atof(tStr.c_str()); //gap
+            parseInfo.material_density = atof(tStr.c_str()); //gap
 		}
 		//单位面积密度
-		parseInfo.materialDensity = PI * (material_diameter * 0.5) * (material_diameter * 0.5) * material_density;
+		parseInfo.materialDensity = PI * (parseInfo.material_diameter * 0.5) * (parseInfo.material_diameter * 0.5) * parseInfo.material_density;
 
 		float filament_cost = 0.0;
-		if (regex_match(gcodeStr, "filament_cost", sm))
+		if (regex_match(gcodeStr, "Filament Cost", sm))
 		{
 			std::string tStr = sm[1];
 			filament_cost = atof(tStr.c_str()); //gap
 		}
 		float filament_weight = 0.0;
-		if (regex_match(gcodeStr, "filament_weight", sm))
+		if (regex_match(gcodeStr, "Filament Weight", sm))
 		{
 			std::string tStr = sm[1];
 			filament_weight = atof(tStr.c_str()); //gap
@@ -1220,7 +1226,7 @@ namespace gcode
 		}
 
 		parseInfo.exportFormat = "jpg";
-		int ipos = gcodeStr.find("preview_img_type");
+		int ipos = gcodeStr.find("Preview Img Type");
 		if (ipos != std::string::npos)
 		{
 			parseInfo.exportFormat = gcodeStr.substr(ipos + 17, 3);
@@ -1234,11 +1240,11 @@ namespace gcode
 			parseInfo.layerHeight = atof(tStr.c_str()); //gap
 		}
 		parseInfo.screenSize = "Sermoon D3";
-		if (gcodeStr.find("screen_size:CR-200B Pro") != std::string::npos)
+		if (gcodeStr.find("Screen Size:CR-200B Pro") != std::string::npos)
 		{
 			parseInfo.screenSize = "CR - 200B Pro";
 		}
-		else if (gcodeStr.find("screen_size:CR-10 Inspire") != std::string::npos)
+		else if (gcodeStr.find("Screen Size:CR-10 Inspire") != std::string::npos)
 		{
 			parseInfo.screenSize = "CR-10 Inspire";
 		}
