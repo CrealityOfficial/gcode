@@ -1190,10 +1190,10 @@ namespace gcode
 			}
 		}
 
-		int index1 = result->prefixCode().find_last_of("M83");
-		int index2 = result->prefixCode().find_last_of("M82");
-		if (index1 > index2)
-			parseInfo.relativeExtrude = true;
+        if (gcodeStr.find("M83") != std::string::npos)
+        {
+            bool relativeExtrude =true;
+        }
 
 		//float material_diameter = 1.75;
 		//float material_density = 1.24;
@@ -1247,7 +1247,7 @@ namespace gcode
 			std::string tStr = sm[1];
 			parseInfo.layerHeight = atof(tStr.c_str()); //gap
             //¼æÈÝÀÏµÄ
-            if (parseInfo.layerHeight > 100)
+            if (parseInfo.layerHeight > 50)
                 parseInfo.layerHeight = parseInfo.layerHeight / 1000.0f;
 		}
 		parseInfo.screenSize = "Sermoon D3";
