@@ -65,13 +65,21 @@ namespace gcode
 
 	inline std::string str_trimmed(const std::string& src)
 	{
+        std::string des = src;
 		int lPos = src.find_first_not_of(' ');
 		int rPos = src.find_last_not_of(' ');
-		std::string des = src.substr(lPos, rPos - lPos + 1);
+        if (lPos>=0 && rPos>=0)
+        {
+            des = src.substr(lPos, rPos - lPos + 1);
+        }
 
 		int lPos2 = src.find_first_not_of('\n');
 		int rPos2 = src.find_last_not_of('\n');
-		return des.substr(lPos2, rPos2 - lPos2 + 1);
+        if (lPos2 >= 0 && rPos2 >= 0)
+        {
+            return des.substr(lPos2, rPos2 - lPos2 + 1);
+        }
+        return des;
 	}
 
 
