@@ -1192,7 +1192,7 @@ namespace gcode
 
         if (gcodeStr.find("M83") != std::string::npos)
         {
-            bool relativeExtrude =true;
+            parseInfo.relativeExtrude =true;
         }
 
 		//float material_diameter = 1.75;
