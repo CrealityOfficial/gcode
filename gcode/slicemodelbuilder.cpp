@@ -1,5 +1,6 @@
 #include "slicemodelbuilder.h"
 #include "gcode/sliceresult.h"
+//#include "slice/sliceattain.h"
 #include "trimesh2/XForm.h"
 #include "mmesh/trimesh/trimeshutil.h"
 #include "mmesh/trimesh/algrithm3d.h"
@@ -305,9 +306,33 @@ namespace gcode
                 break;
             }
 
-            if (type >= 0)
+            //过滤温度为0 的情况
+            if (type >= 0 && temperature > 0.0f)
             {
-                m_temperatures.push_back(gcodeTemperature);
+                if (!m_temperatures.empty())
+                {
+                    bool isRepeat = false;
+                    for (int i=0; i< m_temperatures.size(); i++)
+                    {
+                        if (m_temperatures[i].bedTemperature == gcodeTemperature.bedTemperature
+                            && m_temperatures[i].camberTemperature == gcodeTemperature.camberTemperature
+                            && m_temperatures[i].temperature == gcodeTemperature.temperature)
+                        {
+                            tempTempIndex = i;
+                            isRepeat = true;
+                        }
+                    }
+                    if (!isRepeat)
+                    {
+                        tempTempIndex = m_temperatures.size();
+                        m_temperatures.push_back(gcodeTemperature);
+                    }
+                }
+                else
+                {
+                    tempTempIndex = m_temperatures.size();
+                    m_temperatures.push_back(gcodeTemperature);
+                }
             }
         }
 
@@ -429,6 +454,27 @@ namespace gcode
                 checkoutFan(stepCode);
                 checkoutTemperature(stepCode);
             }
+            else if (stepCode.find("Outer Wall Speed") != std::string::npos
+                || stepCode.find("Inner Wall Speed") != std::string::npos
+                || stepCode.find("Infill Speed") != std::string::npos
+                || stepCode.find("Top/Bottom Speed") != std::string::npos
+                || stepCode.find("Initial Layer Speed") != std::string::npos
+                || stepCode.find("Skirt/Brim Speed") != std::string::npos
+                || stepCode.find("Prime Tower Speed") != std::string::npos
+                )
+            {
+                //获取速度最大限制
+				std::vector<std::string> strs = stringutil::splitString(stepCod, ":");//stepCode.split(":");
+                if (strs.size() == 2)
+                {
+					std::string componentStr = str_trimmed(strs[1]);
+                    if (componentStr.empty())
+                        continue;
+					float speed = tempSpeedMax;
+					float component = std::atof(componentStr.c_str()) * 60;
+					std::max(speed, component);
+                }
+            }
         }
     }
 
@@ -543,6 +589,11 @@ namespace gcode
             m_positions.push_back(tempEndPos);
             GCodeMove move;
             move.start = index - 1;
+            //limit speed
+            if (tempSpeedMax > 0.0f)
+            {
+                tempSpeed = tempSpeed > tempSpeedMax ? tempSpeedMax : tempSpeed;
+            }
             move.speed = tempSpeed;
             move.e = tempEndE - tempCurrentE;
             move.type = tempType;
@@ -559,6 +610,7 @@ namespace gcode
             //add temperature fan and time ...
             if (m_temperatures.empty())
             {
+                tempTempIndex = m_temperatures.size();
                 m_temperatures.push_back(GcodeTemperature());
             }
             if (m_fans.empty())
@@ -585,6 +637,10 @@ namespace gcode
                 if (len != 0 && h != 0 && move.e > 0.0f)
                 {
                     width = move.e * material_s / len / h;
+                }
+                if (len < 0.05)
+                {
+                    width = m_gcodeLayerInfos.back().width;
                 }
 
                 //calculate flow
@@ -1004,8 +1060,11 @@ namespace gcode
 			float minTemp = FLT_MAX, maxTemp = FLT_MIN;
 			for (GcodeTemperature& t : m_temperatures)
 			{
-				minTemp = fminf(t.temperature, minTemp);
-				maxTemp = fmaxf(t.temperature, maxTemp);
+                if (t.temperature > 0)
+                {
+					minTemp = fminf(t.temperature, minTemp);
+					maxTemp = fmaxf(t.temperature, maxTemp);
+				}
 			}
 			tempBaseInfo.minTemperature = minTemp;
 			tempBaseInfo.maxTemperature = maxTemp;
