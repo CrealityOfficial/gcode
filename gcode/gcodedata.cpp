@@ -53,8 +53,8 @@ namespace cxsw
 
 	bool  regex_match(std::string& gcodeStr, std::string key, std::smatch& sm)
 	{
-		std::string temp1 = ".*" + key + ":([0-9]{0,8}).*";
-		std::string temp2 = ".*" + key + ":([-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).*";
+		std::string temp2 = ".*" + key + ":([0-9]{0,8}).*";
+		std::string temp1 = ".*" + key + ":([-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).*";
 		if (std::regex_match(gcodeStr, sm, std::regex(temp1.c_str())) ||
 			std::regex_match(gcodeStr, sm, std::regex(temp2.c_str())))
 		{
@@ -227,7 +227,10 @@ namespace cxsw
 			}
 		}
 
-		if (gcodeStr.find("M83") != std::string::npos)
+
+		int ipos1 = gcodeStr.find("M82");
+		int ipos2 = gcodeStr.find("M83");
+		if (ipos2 != std::string::npos && (ipos2 > ipos1))
 		{
 			parseInfo.relativeExtrude = true;
 		}
@@ -244,6 +247,7 @@ namespace cxsw
 			std::string tStr = sm[1];
 			parseInfo.material_density = atof(tStr.c_str()); //gap
 		}
+
 		//单位面积密度
 		parseInfo.materialDensity = PI * (parseInfo.material_diameter * 0.5) * (parseInfo.material_diameter * 0.5) * parseInfo.material_density;
 
@@ -264,7 +268,7 @@ namespace cxsw
 		parseInfo.unitPrice = filament_cost / filament_length;
 
 		parseInfo.lineWidth = 0.4;
-		if (regex_match_float(gcodeStr, "Out Wall Line Width", sm))
+		if (regex_match(gcodeStr, "Out Wall Line Width", sm))
 		{
 			std::string tStr = sm[1];
 			parseInfo.lineWidth = atof(tStr.c_str()); //gap
@@ -279,12 +283,12 @@ namespace cxsw
 
 
 		parseInfo.layerHeight = 0.1;
-		if (regex_match_float(gcodeStr, "Layer Height", sm))
+		if (regex_match(gcodeStr, "Layer Height", sm))
 		{
 			std::string tStr = sm[1];
 			parseInfo.layerHeight = atof(tStr.c_str()); //gap
 			//兼容老的
-			if (parseInfo.layerHeight > 50)
+			if (parseInfo.layerHeight >= 50)
 				parseInfo.layerHeight = parseInfo.layerHeight / 1000.0f;
 		}
 		parseInfo.screenSize = "Sermoon D3";
@@ -296,6 +300,17 @@ namespace cxsw
 		{
 			parseInfo.screenSize = "CR-10 Inspire";
 		}
+		else if (gcodeStr.find("Screen Size:Ender-3 S1") != std::string::npos)
+		{
+			parseInfo.screenSize = "Ender-3 S1";
+		}
+		else if (gcodeStr.find("Screen Size:Ender-5 S1") != std::string::npos)
+		{
+			parseInfo.screenSize = "Ender-5 S1";
+		}
+
+
+		
 
 		const std::string& preStr = result->prefixCode();
 		parseInfo.spiralMode = preStr.find(";Vase Model:true");
