@@ -1,5 +1,6 @@
 #include "gcodedata.h"
 #include "gcode/sliceresult.h"
+#include "thumbnail/thumbnail.h"
 #include <regex>
 
 namespace cxsw
@@ -141,6 +142,29 @@ namespace cxsw
 		return true;
 	}
 
+	void getImage(std::string p, gcode::SliceResult* result)
+	{
+		std::string tail1 = p;
+
+		size_t pos = p.find(";");
+		if (pos > 0 && pos < p.size())
+		{
+			tail1 = p.substr(pos, p.size());
+			tail1.erase(std::remove(tail1.begin(), tail1.end(), ' '), tail1.end());
+			tail1.erase(std::remove(tail1.begin(), tail1.end(), ';'), tail1.end());
+		}
+
+		std::vector<std::string> prevData;
+		prevData.push_back(tail1);
+		std::vector<unsigned char> decodeData;
+		thumbnail_base2image(prevData, decodeData);
+
+		if (decodeData.size())
+		{
+			result->previewsData.push_back(decodeData);
+		}
+	}
+
 	void parseGCodeInfo(gcode::SliceResult* result, gcode::GCodeParseInfo& parseInfo)
 	{
 		std::string gcodeStr = result->prefixCode();
@@ -149,6 +173,35 @@ namespace cxsw
 		std::replace(gcodeStr.begin(), gcodeStr.end(), '\r', ' ');
 		std::smatch sm;
 
+		result->previewsData.clear();
+        if (std::regex_match(gcodeStr, sm, std::regex(".*jpg begin(.*)jpg end.*jpg begin(.*)jpg end.*"))) //jpg
+        {
+            getImage(sm[1], result);
+            if (sm.size() > 2)
+            {
+                getImage(sm[2], result);
+            }
+        }
+        else  if (std::regex_match(gcodeStr, sm, std::regex(".*png begin(.*)png end.*png begin(.*)png end.*"))) //png
+        {
+            getImage(sm[1], result);
+            if (sm.size() > 2)
+            {
+                getImage(sm[2], result);
+            }
+        }
+        else  if (std::regex_match(gcodeStr, sm, std::regex(".*bmp begin(.*)bmp end.*bmp begin(.*)bmp end.*"))) //bmp
+        {
+            getImage(sm[1], result);
+            if (sm.size() > 2)
+            {
+                getImage(sm[2], result);
+            }
+        }
+        if (std::regex_match(gcodeStr, sm, std::regex(".*thumbnail begin(.*)thumbnail end.*"))) //thumbnail
+        {
+            getImage(sm[1], result);
+        }     
 		if (std::regex_match(gcodeStr, sm, std::regex(".*TIME:([0-9]{0,8}).*"))) ////get print time
 		{
 			std::string tStr = sm[1];
