@@ -1072,5 +1072,57 @@ namespace gcode
 		baseInfo = tempBaseInfo;
 	}
 
+    void GCodeStruct::getPathData(const trimesh::vec3 point, float e, int type)
+    {
+        trimesh::vec3 tempEndPos = tempCurrentPos;
+        double tempEndE = tempCurrentE;
+
+        if (parseInfo.relativeExtrude)
+            tempEndE += e;
+        else
+            tempEndE = e;
+
+        if (point.z >= 0 )
+        {
+            tempEndPos = point;
+            tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z / 1000.f };
+        }
+        else
+        {
+            tempEndPos.x = point.x;
+            tempEndPos.y = point.y;
+            tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z};
+        }
+
+        int index = (int)m_positions.size();
+        m_positions.push_back(tempEndPos);
+        GCodeMove move;
+        move.type = (SliceLineType)type;
+        move.start = index - 1;
+        move.speed = tempSpeed;
+
+        m_moves.emplace_back(move);
+
+        tempCurrentPos = tempEndPos;
+        tempCurrentE = tempEndE;
+    }
+
+    void GCodeStruct::setParam(gcode::GCodeParseInfo& pathParam)
+    {
+        parseInfo = pathParam;
+    }
+
+    void GCodeStruct::setLayer(int layer)
+    {}
+    void GCodeStruct::setSpeed(float s)
+    {
+        tempSpeed = s;
+    }
+    void GCodeStruct::setTEMP(float temp)
+    {}
+    void GCodeStruct::setExtruder(int nr)
+    {}
+    void GCodeStruct::setFan(float fan)
+    {}
 }
 

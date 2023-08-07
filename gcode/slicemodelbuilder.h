@@ -114,6 +114,14 @@ namespace gcode
 
 		std::vector<int> m_zSeams;
 		std::vector<int> m_retractions;
+
+		void getPathData(const trimesh::vec3 point, float e, int type);
+		void setParam(gcode::GCodeParseInfo& pathParam);
+		void setLayer(int layer);
+		void setSpeed(float s);
+		void setTEMP(float temp);
+		void setExtruder(int nr);
+		void setFan(float fan);
 	private:
 		void processLayer(const std::string& layerCode, int layer, std::vector<int>& stepIndexMap);
 		void processStep(const std::string& stepCode, int nIndex, std::vector<int>& stepIndexMap);
