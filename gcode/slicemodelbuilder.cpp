@@ -372,6 +372,18 @@ namespace gcode
         bool haveXYZ = false;
         bool haveE = false;
         bool isHeight = false;
+		std::vector<float> heights;
+
+		auto addHeight = [&]() {
+			GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+
+			float layerHight = height - belowZ;
+			gcodeLayerInfo.layerHight = layerHight + 0.00001f;
+			m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+
+			belowZ = height;
+		};
+
         for (auto stepCode : layerLines)
         {
             if (stepCode.size() > 3)
@@ -394,6 +406,8 @@ namespace gcode
 
                             if (!isHeight)
                                 height = std::atof(componentStr.substr(1).c_str());
+
+							heights.push_back(height);
                         }
                         
                         if (isHeight)
@@ -411,22 +425,31 @@ namespace gcode
                         {
                             haveG123 = true;
                         }
-                        if (haveG123 && haveXYZ && haveE)
-                            isHeight = true;
+						if (haveG123 && haveXYZ && haveE) {
+							addHeight();
+							return;
+						}
                     }
                 }
             }
         }
-        if (isHeight)
-        {
-            GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
-            
-            float layerHight = height - belowZ;
-            gcodeLayerInfo.layerHight = layerHight + 0.00001f;
-            m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+   //     if (isHeight)
+   //     {
+			//addHeight();
+   //     }
+		if ((height - belowZ) >0)
+		{
+			int maxH = 0;
+			for(auto h : heights)
+			{
+				height = std::min(height,h);
+				maxH = std::max(height, h);
+			}
+			addHeight();
 
-            belowZ = height;
-        }
+			belowZ = maxH;
+		} 
+		
     }
 
     void GCodeStruct::processPrefixCode(const std::string& stepCod)
