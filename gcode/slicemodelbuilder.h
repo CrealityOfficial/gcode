@@ -140,7 +140,7 @@ namespace gcode
 		double tempCurrentE;
 		float tempCurrentTime{ 0.0f };
 		float tempCurrentZ{ 0.0f };
-		float belowZ{ 0.0f };
+		float belowZ{ 0.0f };//上层层高
 		trimesh::vec3 tempCurrentPos;
 		float tempSpeed;
 		float tempSpeedMax{ 0.0f };//最大速度限制

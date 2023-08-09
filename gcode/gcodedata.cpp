@@ -288,6 +288,13 @@ namespace cxsw
 			parseInfo.relativeExtrude = true;
 		}
 
+		ipos1 = gcodeStr.find("G90");
+		ipos2 = gcodeStr.find("G91");
+		if (ipos2 != std::string::npos && (ipos2 > ipos1))
+		{
+			parseInfo.relativeExtrude = true;
+		}
+
 		//float material_diameter = 1.75;
 		//float material_density = 1.24;
 		if (regex_match(gcodeStr, "Material Diameter", sm))

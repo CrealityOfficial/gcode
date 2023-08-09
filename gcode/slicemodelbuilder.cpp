@@ -361,96 +361,134 @@ namespace gcode
     }
 
 
-
-
-
-    void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
-    {
-        float height= tempCurrentZ;
-
-        bool haveG123 = false;
-        bool haveXYZ = false;
-        bool haveE = false;
-        bool isHeight = false;
+	void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
+	{
+		float height = tempCurrentZ <= 0 ? 999 : tempCurrentZ;
 		std::vector<float> heights;
+		belowZ;//ÉÏ²ã²ã¸ß
 
-		auto addHeight = [&]() {
-			GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
-
-			float layerHight = height - belowZ;
-			gcodeLayerInfo.layerHight = layerHight + 0.00001f;
-			m_gcodeLayerInfos.push_back(gcodeLayerInfo);
-
-			belowZ = height;
-		};
-
-        for (auto stepCode : layerLines)
-        {
-            if (stepCode.size() > 3)
-            {
-                if (stepCode[0] == 'G' &&
-                    (stepCode[1] == '0' || stepCode[1] == '1' || stepCode[1] == '2' || stepCode[1] == '3'))
-                {
-                    haveG123 = false;
-                    haveXYZ = false;
-                    haveE = false;
-					std::vector<std::string> G01Strs = stringutil::splitString(stepCode," ");
-                    for (const std::string& it3 : G01Strs)
-                    {
-						std::string componentStr = str_trimmed(it3);
-                        if (componentStr.empty())
-                            continue;
-                        if (componentStr[0] == 'Z')
-                        {
-                            tempCurrentZ =std::atof(componentStr.substr(1).c_str());
-
-                            if (!isHeight)
-                                height = std::atof(componentStr.substr(1).c_str());
-
-							heights.push_back(height);
-                        }
-                        
-                        if (isHeight)
-                            continue;
-                            
-                        if (componentStr[0] == 'X'|| componentStr[0] == 'Y' || componentStr[0] == 'Z')
-                        {
-                            haveXYZ = true;
-                        }
-                        else if (componentStr[0] == 'E')
-                        {
-                            haveE = true;
-                        }
-                        else if (componentStr == "G1" || componentStr == "G2" || componentStr == "G3")
-                        {
-                            haveG123 = true;
-                        }
-						if (haveG123 && haveXYZ && haveE) {
-							addHeight();
-							return;
-						}
-                    }
-                }
-            }
-        }
-   //     if (isHeight)
-   //     {
-			//addHeight();
-   //     }
-		if ((height - belowZ) >0)
+		if (belowZ < tempCurrentZ)
 		{
-			int maxH = 0;
-			for(auto h : heights)
+			heights.push_back(tempCurrentZ);
+		}
+		for (auto stepCode : layerLines)
+		{
+			if (stepCode.size() > 3)
 			{
-				height = std::min(height,h);
-				maxH = std::max(height, h);
+				std::vector<std::string> G01Strs = stringutil::splitString(stepCode, " ");
+				for (const std::string& it3 : G01Strs)
+				{
+					std::string componentStr = str_trimmed(it3);
+					if (componentStr.empty())
+						continue;
+					if (componentStr[0] == 'Z')
+					{
+						tempCurrentZ = std::atof(componentStr.substr(1).c_str());
+						heights.push_back(tempCurrentZ);
+					}
+				}
 			}
-			addHeight();
+		}
 
-			belowZ = maxH;
-		} 
-		
-    }
+		for (auto h : heights)
+		{
+			height = std::min(height, h);
+		}
+
+	    GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+		gcodeLayerInfo.layerHight = height + 0.00001f - belowZ;
+		m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+		belowZ = height;
+	}
+
+
+  //  void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
+  //  {
+  //      float height= tempCurrentZ;
+
+  //      bool haveG123 = false;
+  //      bool haveXYZ = false;
+  //      bool haveE = false;
+  //      bool isHeight = false;
+		//std::vector<float> heights;
+
+		//auto addHeight = [&]() {
+		//	GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+
+		//	float layerHight = height - belowZ;
+		//	gcodeLayerInfo.layerHight = layerHight + 0.00001f;
+		//	m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+
+		//	belowZ = height;
+		//};
+
+  //      for (auto stepCode : layerLines)
+  //      {
+  //          if (stepCode.size() > 3)
+  //          {
+  //              if (stepCode[0] == 'G' &&
+  //                  (stepCode[1] == '0' || stepCode[1] == '1' || stepCode[1] == '2' || stepCode[1] == '3'))
+  //              {
+  //                  haveG123 = false;
+  //                  haveXYZ = false;
+  //                  haveE = false;
+		//			std::vector<std::string> G01Strs = stringutil::splitString(stepCode," ");
+  //                  for (const std::string& it3 : G01Strs)
+  //                  {
+		//				std::string componentStr = str_trimmed(it3);
+  //                      if (componentStr.empty())
+  //                          continue;
+  //                      if (componentStr[0] == 'Z')
+  //                      {
+  //                          tempCurrentZ =std::atof(componentStr.substr(1).c_str());
+
+  //                          if (!isHeight)
+  //                              height = std::atof(componentStr.substr(1).c_str());
+
+		//					heights.push_back(height);
+  //                      }
+  //                      
+  //                      if (isHeight)
+  //                          continue;
+  //                          
+  //                      if (componentStr[0] == 'X'|| componentStr[0] == 'Y' || componentStr[0] == 'Z')
+  //                      {
+  //                          haveXYZ = true;
+  //                      }
+  //                      else if (componentStr[0] == 'E')
+  //                      {
+  //                          haveE = true;
+  //                      }
+  //                      else if (componentStr == "G1" || componentStr == "G2" || componentStr == "G3")
+  //                      {
+  //                          haveG123 = true;
+  //                      }
+		//				if (haveG123 && haveXYZ && haveE) {
+		//					addHeight();
+		//					//return;
+		//				}
+  //                  }
+  //              }
+  //          }
+  //      }
+  // //     if (isHeight)
+  // //     {
+		//	//addHeight();
+  // //     }
+		//if ((height - belowZ) >0)
+		//{
+		//	int maxH = 0;
+		//	for(auto h : heights)
+		//	{
+		//		height = std::min(height,h);
+		//		maxH = std::max(height, h);
+		//	}
+		//	addHeight();
+
+		//	belowZ = maxH;
+		//} 
+		//
+  //  }
 
     void GCodeStruct::processPrefixCode(const std::string& stepCod)
     {
