@@ -365,7 +365,6 @@ namespace gcode
 	{
 		float height = tempCurrentZ <= 0 ? 999 : tempCurrentZ;
 		std::vector<float> heights;
-		belowZ;//上层层高
 
 		if (belowZ < tempCurrentZ)
 		{
@@ -400,95 +399,6 @@ namespace gcode
 		m_gcodeLayerInfos.push_back(gcodeLayerInfo);
 		belowZ = height;
 	}
-
-
-  //  void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
-  //  {
-  //      float height= tempCurrentZ;
-
-  //      bool haveG123 = false;
-  //      bool haveXYZ = false;
-  //      bool haveE = false;
-  //      bool isHeight = false;
-		//std::vector<float> heights;
-
-		//auto addHeight = [&]() {
-		//	GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
-
-		//	float layerHight = height - belowZ;
-		//	gcodeLayerInfo.layerHight = layerHight + 0.00001f;
-		//	m_gcodeLayerInfos.push_back(gcodeLayerInfo);
-
-		//	belowZ = height;
-		//};
-
-  //      for (auto stepCode : layerLines)
-  //      {
-  //          if (stepCode.size() > 3)
-  //          {
-  //              if (stepCode[0] == 'G' &&
-  //                  (stepCode[1] == '0' || stepCode[1] == '1' || stepCode[1] == '2' || stepCode[1] == '3'))
-  //              {
-  //                  haveG123 = false;
-  //                  haveXYZ = false;
-  //                  haveE = false;
-		//			std::vector<std::string> G01Strs = stringutil::splitString(stepCode," ");
-  //                  for (const std::string& it3 : G01Strs)
-  //                  {
-		//				std::string componentStr = str_trimmed(it3);
-  //                      if (componentStr.empty())
-  //                          continue;
-  //                      if (componentStr[0] == 'Z')
-  //                      {
-  //                          tempCurrentZ =std::atof(componentStr.substr(1).c_str());
-
-  //                          if (!isHeight)
-  //                              height = std::atof(componentStr.substr(1).c_str());
-
-		//					heights.push_back(height);
-  //                      }
-  //                      
-  //                      if (isHeight)
-  //                          continue;
-  //                          
-  //                      if (componentStr[0] == 'X'|| componentStr[0] == 'Y' || componentStr[0] == 'Z')
-  //                      {
-  //                          haveXYZ = true;
-  //                      }
-  //                      else if (componentStr[0] == 'E')
-  //                      {
-  //                          haveE = true;
-  //                      }
-  //                      else if (componentStr == "G1" || componentStr == "G2" || componentStr == "G3")
-  //                      {
-  //                          haveG123 = true;
-  //                      }
-		//				if (haveG123 && haveXYZ && haveE) {
-		//					addHeight();
-		//					//return;
-		//				}
-  //                  }
-  //              }
-  //          }
-  //      }
-  // //     if (isHeight)
-  // //     {
-		//	//addHeight();
-  // //     }
-		//if ((height - belowZ) >0)
-		//{
-		//	int maxH = 0;
-		//	for(auto h : heights)
-		//	{
-		//		height = std::min(height,h);
-		//		maxH = std::max(height, h);
-		//	}
-		//	addHeight();
-
-		//	belowZ = maxH;
-		//} 
-		//
-  //  }
 
     void GCodeStruct::processPrefixCode(const std::string& stepCod)
     {
@@ -579,69 +489,13 @@ namespace gcode
         }
     }
 
-    void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3)
-    {
-        std::vector<std::string> G01Strs = stringutil::splitString(G01Str," ");
-
-        trimesh::vec3 tempEndPos = tempCurrentPos;
-        double tempEndE = tempCurrentE;
-        SliceLineType tempType = tempCurrentType;
-        bool havaXYZ = false;
-
+    void GCodeStruct::processG01_sub(SliceLineType tempType,double tempEndE,trimesh::vec3 tempEndPos,bool havaXYZ,int nIndex, std::vector<int>& stepIndexMap, bool isG2G3) {
+        
         GcodeLayerInfo gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
-        for (const std::string& it3 : G01Strs)
-        {
-            std::string componentStr = str_trimmed(it3);
-            //it4 ==G1 / F4800 / X110.125 / Y106.709 /Z0.6 /E575.62352
-            if (componentStr.empty())
-                continue;
 
-            if (componentStr[0] == 'F')
-            {
-                tempSpeed = std::atof(componentStr.substr(1).c_str());
-            }
-            else if (componentStr[0] == 'E' || componentStr[0] == 'P')
-            {
-				double e = std::atof(componentStr.substr(1).c_str());
-                if (parseInfo.relativeExtrude)
-                    tempEndE += e;
-                else
-                    tempEndE = e;
-            }
-            else if (componentStr[0] == 'X')
-            {
-				tempEndPos.at(0) = std::atof(componentStr.substr(1).c_str());
-                havaXYZ = true;
-            }
-            else if (componentStr[0] == 'Y')
-            {
-				tempEndPos.at(1) = std::atof(componentStr.substr(1).c_str());
-                havaXYZ = true;
-            }
-            else if (componentStr[0] == 'Z')
-            {
-                tempEndPos.at(2) = std::atof(componentStr.substr(1).c_str());;
-                havaXYZ = true;
-            }
-        }
-
-        if (tempEndE == tempCurrentE)
+        if (tempType == SliceLineType::React)
         {
-            if (G01Str[1] == '0' || havaXYZ)
-            {
-                tempType = SliceLineType::Travel;
-            }
-        }
-        else if (tempEndE < tempCurrentE)
-        {
-            if (havaXYZ)
-                tempType = SliceLineType::Travel;
-            else
-            {
-                tempType = SliceLineType::React;
-                m_retractions.push_back(m_positions.size()-1);
-            }
-                
+            m_retractions.push_back(m_positions.size() - 1);
         }
 
         if (havaXYZ)
@@ -740,89 +594,88 @@ namespace gcode
         tempCurrentE = tempEndE;
     }
 
-    void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap)
+    void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3)
     {
-        std::vector<std::string> G23Strs = stringutil::splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
-        //G3 F1500 X118.701 Y105.96 I9.55 J1.115 E7.96039
-        bool isG2 = true;
-        if (G23Code[1] == '3')
-            isG2 = false;
+        std::vector<std::string> G01Strs = stringutil::splitString(G01Str," ");
 
-        bool bIsTravel = true;
-        float f = 0.0f;
-        float e = 0.0f;
-        float x = 0.0f;
-        float y = 0.0f;
-        float i = 0.0f;
-        float j = 0.0f;
-        bool  bcircles = false;
-        float currentE = tempCurrentE;
-        for (const std::string& it3 : G23Strs)
+        trimesh::vec3 tempEndPos = tempCurrentPos;
+        double tempEndE = tempCurrentE;
+        SliceLineType tempType = tempCurrentType;
+        bool havaXYZ = false;
+
+        GcodeLayerInfo gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+        for (const std::string& it3 : G01Strs)
         {
+            std::string componentStr = str_trimmed(it3);
             //it4 ==G1 / F4800 / X110.125 / Y106.709 /Z0.6 /E575.62352
-            std::string G23Str = str_trimmed(it3);
-            if (G23Str.empty())
+            if (componentStr.empty())
                 continue;
 
-
-			float currentValue = std::atof(G23Str.substr(1).c_str());
-            if (G23Str[0] == 'E')
+            if (componentStr[0] == 'F')
             {
-				float _e = currentValue;//G23Str.mid(1).toFloat();
-                if (_e > 0)
-                {
-                    if (!parseInfo.relativeExtrude)
-                        e = _e - tempCurrentE;
-                    else
-                        e = _e;
-                    bIsTravel = false;
-                }
-
-                currentE = _e;
+                tempSpeed = std::atof(componentStr.substr(1).c_str());
             }
-            else if (G23Str[0] == 'F')
+            else if (componentStr[0] == 'E' || componentStr[0] == 'P')
             {
-				f = currentValue;
-                tempSpeed = currentValue;
+				double e = std::atof(componentStr.substr(1).c_str());
+                if (parseInfo.relativeExtrude)
+                    tempEndE += e;
+                else
+                    tempEndE = e;
             }
-            else if (G23Str[0] == 'X')
+            else if (componentStr[0] == 'X')
             {
-                x = currentValue;
+				tempEndPos.at(0) = std::atof(componentStr.substr(1).c_str());
+                havaXYZ = true;
             }
-            else if (G23Str[0] == 'Y')
+            else if (componentStr[0] == 'Y')
             {
-                y = currentValue;
+				tempEndPos.at(1) = std::atof(componentStr.substr(1).c_str());
+                havaXYZ = true;
             }
-            else if (G23Str[0] == 'I')
+            else if (componentStr[0] == 'Z')
             {
-                i = currentValue;
-            }
-            else if (G23Str[0] == 'J')
-            {
-                j = currentValue;
-            }
-            else if (G23Str[0] == 'P')
-            {
-                bcircles = true;
-                bIsTravel = true;
-                if (x == 0 && y == 0)
-                {
-                    x = tempCurrentPos.x;
-                    y = tempCurrentPos.y;
-                }
+                tempEndPos.at(2) = std::atof(componentStr.substr(1).c_str());;
+                havaXYZ = true;
             }
         }
 
+        if (tempEndE == tempCurrentE)
+        {
+            if (G01Str[1] == '0' || havaXYZ)
+            {
+                tempType = SliceLineType::Travel;
+            }
+        }
+        else if (tempEndE < tempCurrentE)
+        {
+            if (havaXYZ)
+                tempType = SliceLineType::Travel;
+            else
+            {
+                tempType = SliceLineType::React;
+                m_retractions.push_back(m_positions.size()-1);
+            }
+                
+        }
+
+        processG01_sub(tempType, tempEndE, tempEndPos, havaXYZ, nIndex, stepIndexMap, isG2G3);
+    }
+    
+    void GCodeStruct::processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap)
+    {
+        bool bcircles = false;
+
         trimesh::vec3 circlePos = tempCurrentPos;
-        circlePos.x += i;
-        circlePos.y += j;
+        circlePos.x += info.i;
+        circlePos.y += info.j;
         trimesh::vec3 circleEndPos = tempCurrentPos;
-        circleEndPos.x = x;
-        circleEndPos.y = y;
+        circleEndPos.x = info.x;
+        circleEndPos.y = info.y;
 
         float theta = 0.0f;
         std::vector<trimesh::vec> out;
-        if (isG2)
+        if (info.isG2)
         {
             theta = mmesh::getAngelOfTwoVector(tempCurrentPos, circleEndPos, circlePos);
         }
@@ -844,13 +697,13 @@ namespace gcode
         //计算弧长
         float len = theta * M_PIf * radius / 180.0;
         float r = material_diameter / 2.0f;
-        float flow = r * r * PI * e * tempSpeed / 60.0 / len;
+        float flow = r * r * PI * info.e * tempSpeed / 60.0 / len;
 
         float h = m_gcodeLayerInfos.back().layerHight;
         float width = 0.0f;
-        if (len != 0 && h != 0 && e > 0.0f)
+        if (len != 0 && h != 0 && info.e > 0.0f)
         {
-            width = e * material_s / len / h;
+            width = info.e * material_s / len / h;
         }
 
         if (std::abs(m_gcodeLayerInfos.back().flow - flow) > 0.001 && len >= 1.0f)
@@ -862,19 +715,19 @@ namespace gcode
         }
 
 
-        mmesh::getDevidePoint(circlePos, tempCurrentPos, out, theta, isG2);
+        mmesh::getDevidePoint(circlePos, tempCurrentPos, out, theta, info.isG2);
         out.push_back(circleEndPos);
-        float devideE = e;
+        float devideE = info.e;
         if (out.size() > 0)
         {
-            devideE = e / out.size();
+            devideE = info.e / out.size();
         }
 
-		std::list<std::string> G23toG1s;
+        std::list<std::string> G23toG1s;
         for (size_t ii = 0; ii < out.size(); ii++)
         {
             std::string devideTemp = "";
-            if (bIsTravel)
+            if (info.bIsTravel)
             {
                 devideTemp += "G0 ";
             }
@@ -882,10 +735,10 @@ namespace gcode
             {
                 devideTemp += "G1 ";
             }
-            if (f)
+            if (info.f)
             {
                 char itc[20];
-                sprintf(itc, "F%0.1f ", f);
+                sprintf(itc, "F%0.1f ", info.f);
                 devideTemp += itc;
             }
             char itcx[20];
@@ -894,7 +747,7 @@ namespace gcode
             char itcy[20];
             sprintf(itcy, "Y%0.3f ", out[ii].y);
             devideTemp += itcy;
-            if (!bIsTravel)
+            if (!info.bIsTravel)
             {
                 char itce[20];
                 double ce = parseInfo.relativeExtrude ? devideE : tempCurrentE + devideE * (ii + 1);
@@ -907,10 +760,91 @@ namespace gcode
 
         for (const auto& G23toG01 : G23toG1s)
         {
-            processG01(G23toG01, nIndex, stepIndexMap,true);
+            processG01(G23toG01, nIndex, stepIndexMap, true);
         }
 
-        tempCurrentE = currentE;
+        tempCurrentE = info.currentE;
+    }
+
+    void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap)
+    {
+        std::vector<std::string> G23Strs = stringutil::splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
+        //G3 F1500 X118.701 Y105.96 I9.55 J1.115 E7.96039
+        //bool isG2 = true;
+        //if (G23Code[1] == '3')
+        //    isG2 = false;
+
+        G2G3Info info;
+
+        info.isG2 = G23Code[1] == '3' ? false : true;
+        info.bIsTravel = true;
+        info.f = 0.0f;
+        info.e = 0.0f;
+        info.x = 0.0f;
+        info.y = 0.0f;
+        info.i = 0.0f;
+        info.j = 0.0f;
+        bool  bcircles = false;
+        info.currentE = tempCurrentE;
+        for (const std::string& it3 : G23Strs)
+        {
+            //it4 ==G1 / F4800 / X110.125 / Y106.709 /Z0.6 /E575.62352
+            std::string G23Str = str_trimmed(it3);
+            if (G23Str.empty())
+                continue;
+
+
+			float currentValue = std::atof(G23Str.substr(1).c_str());
+            if (G23Str[0] == 'E')
+            {
+				float _e = currentValue;//G23Str.mid(1).toFloat();
+                if (_e > 0)
+                {
+                    if (!parseInfo.relativeExtrude)
+                        info.e = _e - tempCurrentE;
+                    else
+                        info.e = _e;
+                    info.bIsTravel = false;
+                }
+
+                info.currentE = _e;
+            }
+            else if (G23Str[0] == 'F')
+            {
+                info.f = currentValue;
+                tempSpeed = currentValue;
+            }
+            else if (G23Str[0] == 'X')
+            {
+                info.x = currentValue;
+            }
+            else if (G23Str[0] == 'Y')
+            {
+                info.y = currentValue;
+            }
+            else if (G23Str[0] == 'I')
+            {
+                info.i = currentValue;
+            }
+            else if (G23Str[0] == 'J')
+            {
+                info.j = currentValue;
+            }
+            else if (G23Str[0] == 'P')
+            {
+                bcircles = true;
+                info.bIsTravel = true;
+                if (info.x == 0 && info.y == 0)
+                {
+                    info.x = tempCurrentPos.x;
+                    info.y = tempCurrentPos.y;
+                }
+            }
+        }
+
+        GCodeStruct::processG23_sub(info,  nIndex, stepIndexMap);
+
+
     }
 
     void GCodeStruct::processSpeed(float speed)
@@ -1133,17 +1067,113 @@ namespace gcode
 		baseInfo = tempBaseInfo;
 	}
 
+    void GCodeStruct::buildFromResult(const GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer)
+    {
+        tempBaseInfo.totalSteps = (int)m_moves.size();
+        tempBaseInfo.layers = (int)tempBaseInfo.layerNumbers.size();
+        if (!layerNumberParseSuccess)
+        {
+            tempBaseInfo.layerNumbers.clear();
+            tempBaseInfo.layers = 1;
+            tempBaseInfo.steps.clear();
+            tempBaseInfo.steps.push_back(tempBaseInfo.totalSteps);
+            if (stepIndexMaps.size() > 0)
+            {
+                stepIndexMaps.resize(1);
+            }
+        }
+
+        stepIndexMaps = m_stepIndexMaps;
+        m_stepIndexMaps.clear();
+
+        for (GCodeMove& move : m_moves)
+        {
+            move.speed = move.speed / tempBaseInfo.speedMax;
+        }
+
+        {
+            float minFlow = FLT_MAX, maxFlow = FLT_MIN;
+            float minWidth = FLT_MAX, maxWidth = FLT_MIN;
+            float minHeight = FLT_MAX, maxHeight = FLT_MIN;
+
+            for (GcodeLayerInfo& info : m_gcodeLayerInfos)
+            {
+                if (info.flow > 0.0)
+                {
+                    minFlow = fminf(info.flow, minFlow);
+                    maxFlow = fmaxf(info.flow, maxFlow);
+                }
+
+                if (info.width > 0.0)
+                {
+                    minWidth = fminf(info.width, minWidth);
+                    maxWidth = fmaxf(info.width, maxWidth);
+                }
+
+                minHeight = fminf(info.layerHight, minHeight);
+                maxHeight = fmaxf(info.layerHight, maxHeight);
+            }
+            tempBaseInfo.minFlowOfStep = minFlow;
+            tempBaseInfo.maxFlowOfStep = maxFlow;
+            tempBaseInfo.minLineWidth = minWidth;
+            tempBaseInfo.maxLineWidth = maxWidth;
+            tempBaseInfo.minLayerHeight = minHeight;
+            tempBaseInfo.maxLayerHeight = maxHeight;
+
+        }
+
+        {
+            float minTime = FLT_MAX, maxTime = FLT_MIN;
+            for (auto t : m_layerTimes)
+            {
+                float time = t.second;
+                minTime = fminf(time, minTime);
+                maxTime = fmaxf(time, maxTime);
+            }
+            tempBaseInfo.minTimeOfLayer = minTime;
+            tempBaseInfo.maxTimeOfLayer = maxTime;
+        }
+
+
+        {
+            float minTemp = FLT_MAX, maxTemp = FLT_MIN;
+            for (GcodeTemperature& t : m_temperatures)
+            {
+                if (t.temperature > 0)
+                {
+                    minTemp = fminf(t.temperature, minTemp);
+                    maxTemp = fmaxf(t.temperature, maxTemp);
+                }
+            }
+            tempBaseInfo.minTemperature = minTemp;
+            tempBaseInfo.maxTemperature = maxTemp;
+        }
+        baseInfo = tempBaseInfo;
+    }
+
     void GCodeStruct::getPathData(const trimesh::vec3 point, float e, int type)
     {
+        if (layerNumberParseSuccess)
+        {
+            layerNumberParseSuccess = false;
+        }
+
+
         trimesh::vec3 tempEndPos = tempCurrentPos;
         double tempEndE = tempCurrentE;
+        SliceLineType tempType = tempCurrentType;
+        //bool havaXYZ = false;
 
-        if (parseInfo.relativeExtrude)
-            tempEndE += e;
-        else
-            tempEndE = e;
+        tempType = (SliceLineType)type;
+        GcodeLayerInfo gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
 
-        if (point.z >= 0 )
+        if (e > -999)
+            if (parseInfo.relativeExtrude)
+                tempEndE += e;
+            else
+                tempEndE = e;
+
+        if (point.z > -999)
         {
             tempEndPos = point;
             tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z / 1000.f };
@@ -1152,38 +1182,104 @@ namespace gcode
         {
             tempEndPos.x = point.x;
             tempEndPos.y = point.y;
-            tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z};
+            tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z };
         }
 
-        int index = (int)m_positions.size();
-        m_positions.push_back(tempEndPos);
-        GCodeMove move;
-        move.type = (SliceLineType)type;
-        move.start = index - 1;
-        move.speed = tempSpeed;
-
-        m_moves.emplace_back(move);
-
-        tempCurrentPos = tempEndPos;
-        tempCurrentE = tempEndE;
+        //TODO
+        int nIndex = 0;
+        //std::vector<int> stepIndexMap;
+        processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex, m_stepIndexMaps.back(), false);
     }
 
-    void GCodeStruct::setParam(gcode::GCodeParseInfo& pathParam)
-    {
+    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2) {
+        G2G3Info info;
+        info.bIsTravel = true;
+        info.isG2 = isG2;
+        info.f = tempSpeed;
+        info.e = e;
+        info.x = point.x;
+        info.y = point.y;
+        info.i = i;
+        info.j = j;
+        info.bIsTravel = (SliceLineType)type != SliceLineType::MoveCombing;
+        info.currentE = tempCurrentE;
+        if (e > 0)
+        {
+            if (!parseInfo.relativeExtrude)
+                info.e = e - tempCurrentE;
+            else
+                info.e = e;
+            info.bIsTravel = false;
+        }
+        info.currentE = e;
+
+        //TODO
+        int nIndex = 0;
+        std::vector<int> stepIndexMap;
+        GCodeStruct::processG23_sub(info, nIndex, stepIndexMap);
+    }
+
+    void GCodeStruct::setParam(gcode::GCodeParseInfo& pathParam){
         parseInfo = pathParam;
     }
 
-    void GCodeStruct::setLayer(int layer)
-    {}
-    void GCodeStruct::setSpeed(float s)
-    {
+    void GCodeStruct::setLayer(int layer){
+        tempBaseInfo.layerNumbers.push_back(layer);
+
+        if (m_stepIndexMaps.empty())
+        {
+            m_stepIndexMaps.push_back(std::vector<int>());
+        }
+    }
+    void GCodeStruct::setSpeed(float s){
         tempSpeed = s;
     }
-    void GCodeStruct::setTEMP(float temp)
-    {}
-    void GCodeStruct::setExtruder(int nr)
-    {}
-    void GCodeStruct::setFan(float fan)
-    {}
+    void GCodeStruct::setTEMP(float temp){
+        GcodeTemperature gcodeTemperature = m_temperatures.size() > 0 ? m_temperatures.back() : GcodeTemperature();
+        gcodeTemperature.temperature = temp;
+        m_temperatures.push_back(gcodeTemperature);
+    }
+    void GCodeStruct::setExtruder(int nr){
+        tempNozzleIndex = nr;
+    }
+    void GCodeStruct::setFan(float fan){
+        GcodeFan gcodeFan = m_fans.size() > 0 ? m_fans.back() : GcodeFan();
+        gcodeFan.fanSpeed = fan;
+        m_fans.push_back(gcodeFan);
+    }
+
+    void GCodeStruct::setZ(float z, float h){
+        if (h >= 0)
+        {
+            if (belowZ < h)
+            {
+                GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+
+                float layerHight = h - belowZ;
+                gcodeLayerInfo.layerHight = layerHight;
+                m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+
+                belowZ = h;
+            }
+        }
+        tempCurrentZ = z;
+    }
+
+    void GCodeStruct::setE(float e){
+        tempCurrentE = e;
+    }
+
+    void GCodeStruct::setTime(float time)
+    {
+        float temp = time - tempCurrentTime;
+        float templog = 0.0f;
+        //if (temp >0)
+        //{
+        //    templog = std::log(temp);
+        //}
+        //m_layerTimeLogs.insert(std::pair<int, float>(layer, templog));
+        m_layerTimes.insert(std::pair<int, float>(tempBaseInfo.layerNumbers.size()-1, temp));
+        tempCurrentTime = time;//strs[1].toFloat();
+    }
 }
 

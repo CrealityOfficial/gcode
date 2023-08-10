@@ -12,6 +12,19 @@
 
 namespace gcode
 {
+	struct G2G3Info
+	{
+		float f;
+		float e;
+		float x;
+		float y;
+		float i;
+		float j;
+		float currentE;
+		bool isG2;
+		bool bIsTravel;
+	};
+
 	struct GCodeParseInfo;
 	struct GCodeStructBaseInfo
 	{
@@ -97,6 +110,7 @@ namespace gcode
 		~GCodeStruct();
 
 		void buildFromResult(SliceResultPointer result, const GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer = nullptr);
+		void buildFromResult(const GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer = nullptr);
 		void buildFromResult(gcode::SliceResult* result, ccglobal::Tracer* tracer = nullptr);
 
 		std::vector<trimesh::vec3> m_positions;
@@ -116,17 +130,23 @@ namespace gcode
 		std::vector<int> m_retractions;
 
 		void getPathData(const trimesh::vec3 point, float e, int type);
+		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true);
 		void setParam(gcode::GCodeParseInfo& pathParam);
 		void setLayer(int layer);
 		void setSpeed(float s);
 		void setTEMP(float temp);
 		void setExtruder(int nr);
 		void setFan(float fan);
+		void setZ(float z, float h);
+		void setE(float e);
+		void setTime(float time);
 	private:
 		void processLayer(const std::string& layerCode, int layer, std::vector<int>& stepIndexMap);
 		void processStep(const std::string& stepCode, int nIndex, std::vector<int>& stepIndexMap);
 		void processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap,bool isG2G3 =false);
+		void processG01_sub(SliceLineType tempType, double tempEndE, trimesh::vec3 tempEndPos, bool havaXYZ, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3);
 		void processG23(const std::string& G23Str, int nIndex, std::vector<int>& stepIndexMap);
+		void processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap);
 		void processSpeed(float speed);
 
 		void processPrefixCode(const std::string& stepCod);
@@ -146,6 +166,8 @@ namespace gcode
 		float tempSpeedMax{ 0.0f };//最大速度限制
 		int tempTempIndex{ 0 };; //当前温度索引
 		bool layerNumberParseSuccess;
+
+		std::vector<std::vector<int>> m_stepIndexMaps;
 
 		GCodeParseInfo parseInfo;
 		GCodeStructBaseInfo tempBaseInfo;
