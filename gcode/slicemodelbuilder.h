@@ -167,6 +167,9 @@ namespace gcode
 		int tempTempIndex{ 0 };; //当前温度索引
 		bool layerNumberParseSuccess;
 
+		int nIndex = 0;
+
+		int startNumber = 0;
 		std::vector<std::vector<int>> m_stepIndexMaps;
 
 		GCodeParseInfo parseInfo;

@@ -92,6 +92,7 @@ namespace gcode
         , tempSpeed(0.0f)
         , layerNumberParseSuccess(true)
         , m_tracer(nullptr)
+        , nIndex(0)
     {
         m_positions.push_back(tempCurrentPos);
     }
@@ -1087,17 +1088,19 @@ namespace gcode
     {
         tempBaseInfo.totalSteps = (int)m_moves.size();
         tempBaseInfo.layers = (int)tempBaseInfo.layerNumbers.size();
-        if (!layerNumberParseSuccess)
-        {
-            tempBaseInfo.layerNumbers.clear();
-            tempBaseInfo.layers = 1;
-            tempBaseInfo.steps.clear();
-            tempBaseInfo.steps.push_back(tempBaseInfo.totalSteps);
-            if (stepIndexMaps.size() > 0)
-            {
-                stepIndexMaps.resize(1);
-            }
-        }
+        //if (!layerNumberParseSuccess)
+        //{
+        //    tempBaseInfo.layerNumbers.clear();
+        //    tempBaseInfo.layers = 1;
+        //    tempBaseInfo.steps.clear();
+        //    tempBaseInfo.steps.push_back(tempBaseInfo.totalSteps);
+        //    if (stepIndexMaps.size() > 0)
+        //    {
+        //        stepIndexMaps.resize(1);
+        //    }
+        //}
+
+        tempBaseInfo.steps.push_back((int)m_moves.size() - startNumber);
 
         stepIndexMaps = m_stepIndexMaps;
         m_stepIndexMaps.clear();
@@ -1202,9 +1205,8 @@ namespace gcode
         }
 
         //TODO
-        int nIndex = 0;
         //std::vector<int> stepIndexMap;
-        processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex, m_stepIndexMaps.back(), false);
+        processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex++, m_stepIndexMaps.back(), false);
     }
 
     void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2) {
@@ -1230,9 +1232,8 @@ namespace gcode
         info.currentE = e;
 
         //TODO
-        int nIndex = 0;
-        std::vector<int> stepIndexMap;
-        GCodeStruct::processG23_sub(info, nIndex, stepIndexMap);
+        GCodeStruct::processG23_sub(info, nIndex++, m_stepIndexMaps.back());
+        nIndex++;
     }
 
     void GCodeStruct::setParam(gcode::GCodeParseInfo& pathParam){
@@ -1242,10 +1243,17 @@ namespace gcode
     void GCodeStruct::setLayer(int layer){
         tempBaseInfo.layerNumbers.push_back(layer);
 
-        if (m_stepIndexMaps.empty())
+        //if (m_stepIndexMaps.empty())
         {
+            nIndex = 0;
             m_stepIndexMaps.push_back(std::vector<int>());
         }
+
+        if (m_moves.size() > 0)
+        {
+            tempBaseInfo.steps.push_back((int)m_moves.size() - startNumber);
+        }
+        startNumber = m_moves.size();
     }
     void GCodeStruct::setSpeed(float s){
         tempSpeed = s;
