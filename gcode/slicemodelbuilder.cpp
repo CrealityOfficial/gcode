@@ -359,46 +359,58 @@ namespace gcode
             }
         }
     }
+    
+    void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
+    {
+        float height = tempCurrentZ;
+        for (auto stepCode : layerLines)
+        {
+            if (stepCode.size() > 3)
+            {
+                std::vector<std::string> G01Strs = stringutil::splitString(stepCode, " ");
+                if (G01Strs.size() > 0)
+                {
+                    bool haveG123 = false;
+                    bool haveXY = false;
+                    bool haveE = false;
+                    bool haveHeight = false;
+                    for (const std::string& it3 : G01Strs)
+                    {
+                        std::string componentStr = str_trimmed(it3);
+                        if (componentStr.size()>0)
+                        {
+                            if (componentStr == "G1" || componentStr == "G2" || componentStr == "G3")
+                            {
+                                haveG123 = true;
+                            }
+                            else if (componentStr[0] == 'X' || componentStr[0] == 'Y')
+                            {
+                                haveXY = true;
+                            }
+                            else if (componentStr[0] == 'A' || componentStr[0] == 'P' || componentStr[0] == 'E')
+                            {
+                                haveE = true;
+                            }
+                            if (componentStr[0] == 'Z')
+                            {
+                                tempCurrentZ = std::atof(componentStr.substr(1).c_str());
+                            }
+                        }
+                    }
+                    if (haveG123 && haveXY && haveE && !haveHeight)
+                    {
+                        height = tempCurrentZ;
+                        haveHeight = true;
+                    }
+                }
+            }
+        }
 
-
-	void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
-	{
-		float height = tempCurrentZ <= 0 ? 999 : tempCurrentZ;
-		std::vector<float> heights;
-
-		if (belowZ < tempCurrentZ)
-		{
-			heights.push_back(tempCurrentZ);
-		}
-		for (auto stepCode : layerLines)
-		{
-			if (stepCode.size() > 3)
-			{
-				std::vector<std::string> G01Strs = stringutil::splitString(stepCode, " ");
-				for (const std::string& it3 : G01Strs)
-				{
-					std::string componentStr = str_trimmed(it3);
-					if (componentStr.empty())
-						continue;
-					if (componentStr[0] == 'Z')
-					{
-						tempCurrentZ = std::atof(componentStr.substr(1).c_str());
-						heights.push_back(tempCurrentZ);
-					}
-				}
-			}
-		}
-
-		for (auto h : heights)
-		{
-			height = std::min(height, h);
-		}
-
-	    GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
-		gcodeLayerInfo.layerHight = height + 0.00001f - belowZ;
-		m_gcodeLayerInfos.push_back(gcodeLayerInfo);
-		belowZ = height;
-	}
+        GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+        gcodeLayerInfo.layerHight = height + 0.00001f - belowZ;
+        m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+        belowZ = height;
+    }
 
     void GCodeStruct::processPrefixCode(const std::string& stepCod)
     {
@@ -553,7 +565,7 @@ namespace gcode
                 {
                     width = move.e * material_s / len / h;
                 }
-                if (len < 0.05)
+                if ((len < 0.05 || move.e < 0.1f) && m_gcodeLayerInfos.back().width >=0.0f)
                 {
                     width = m_gcodeLayerInfos.back().width;
                 }
@@ -706,6 +718,10 @@ namespace gcode
             width = info.e * material_s / len / h;
         }
 
+        if ((len < 0.05 || info.e < 0.1f) && m_gcodeLayerInfos.back().width >= 0.0f)
+        {
+            width = m_gcodeLayerInfos.back().width;
+        }
         if (std::abs(m_gcodeLayerInfos.back().flow - flow) > 0.001 && len >= 1.0f)
         {
             GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
