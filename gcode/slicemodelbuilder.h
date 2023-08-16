@@ -110,7 +110,7 @@ namespace gcode
 		~GCodeStruct();
 
 		void buildFromResult(SliceResultPointer result, const GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer = nullptr);
-		void buildFromResult(const GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer = nullptr);
+		void buildFromResult(GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer = nullptr);
 		void buildFromResult(gcode::SliceResult* result, ccglobal::Tracer* tracer = nullptr);
 
 		std::vector<trimesh::vec3> m_positions;

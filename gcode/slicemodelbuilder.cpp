@@ -1084,8 +1084,9 @@ namespace gcode
 		baseInfo = tempBaseInfo;
 	}
 
-    void GCodeStruct::buildFromResult(const GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer)
+    void GCodeStruct::buildFromResult(GCodeParseInfo& info, GCodeStructBaseInfo& baseInfo, std::vector<std::vector<int>>& stepIndexMaps, ccglobal::Tracer* tracer)
     {
+        info = parseInfo;
         tempBaseInfo.totalSteps = (int)m_moves.size();
         tempBaseInfo.layers = (int)tempBaseInfo.layerNumbers.size();
         //if (!layerNumberParseSuccess)
@@ -1304,6 +1305,8 @@ namespace gcode
         //m_layerTimeLogs.insert(std::pair<int, float>(layer, templog));
         m_layerTimes.insert(std::pair<int, float>(tempBaseInfo.layerNumbers.size()-1, temp));
         tempCurrentTime = time;//strs[1].toFloat();
+
+        parseInfo.printTime = tempCurrentTime;
     }
 }
 
