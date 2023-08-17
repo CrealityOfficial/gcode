@@ -140,6 +140,7 @@ namespace gcode
 		void setZ(float z, float h);
 		void setE(float e);
 		void setTime(float time);
+		void getNotPath();
 	private:
 		void processLayer(const std::string& layerCode, int layer, std::vector<int>& stepIndexMap);
 		void processStep(const std::string& stepCode, int nIndex, std::vector<int>& stepIndexMap);

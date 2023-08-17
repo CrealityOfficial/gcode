@@ -1234,6 +1234,10 @@ namespace gcode
 
         //TODO
         GCodeStruct::processG23_sub(info, nIndex++, m_stepIndexMaps.back());
+    }
+
+    void GCodeStruct::getNotPath()
+    {
         nIndex++;
     }
 
