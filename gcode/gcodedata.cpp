@@ -176,31 +176,103 @@ namespace cxsw
 		result->previewsData.clear();
         if (std::regex_match(gcodeStr, sm, std::regex(".*jpg begin(.*)jpg end.*jpg begin(.*)jpg end.*"))) //jpg
         {
+			std::string strTemp = gcodeStr;
             getImage(sm[1], result);
+
+			int pos = strTemp.find(sm[1]);
+			if (pos != std::string::npos)
+			{
+				std::string str1  = strTemp.substr(0, pos);
+				std::string str2 = strTemp.substr(pos + sm[1].length(), strTemp.length());
+				strTemp = str1 + str2;
+			}
+
             if (sm.size() > 2)
             {
                 getImage(sm[2], result);
+
+				int pos = strTemp.find(sm[2]);
+				if (pos != std::string::npos)
+				{
+					std::string str1 = strTemp.substr(0, pos);
+					std::string str2 = strTemp.substr(pos + sm[2].length(), strTemp.length());
+					strTemp = str1 + str2;
+				}
+
             }
+			gcodeStr = strTemp;
         }
         else  if (std::regex_match(gcodeStr, sm, std::regex(".*png begin(.*)png end.*png begin(.*)png end.*"))) //png
         {
+			std::string strTemp = gcodeStr;
+
             getImage(sm[1], result);
+
+			int pos = strTemp.find(sm[1]);
+			if (pos != std::string::npos)
+			{
+				std::string str1 = strTemp.substr(0, pos);
+				std::string str2 = strTemp.substr(pos + sm[1].length(), strTemp.length());
+				strTemp = str1 + str2;
+			}
+
             if (sm.size() > 2)
             {
                 getImage(sm[2], result);
+
+				int pos = strTemp.find(sm[2]);
+				if (pos != std::string::npos)
+				{
+					std::string str1 = strTemp.substr(0, pos);
+					std::string str2 = strTemp.substr(pos + sm[2].length(), strTemp.length());
+					strTemp = str1 + str2;
+				}
+
             }
+
+			gcodeStr = strTemp;
         }
         else  if (std::regex_match(gcodeStr, sm, std::regex(".*bmp begin(.*)bmp end.*bmp begin(.*)bmp end.*"))) //bmp
         {
+			std::string strTemp = gcodeStr;
             getImage(sm[1], result);
+
+			int pos = strTemp.find(sm[1]);
+			if (pos != std::string::npos)
+			{
+				std::string str1 = strTemp.substr(0, pos);
+				std::string str2 = strTemp.substr(pos + sm[1].length(), strTemp.length());
+				strTemp = str1 + str2;
+			}
+
             if (sm.size() > 2)
             {
                 getImage(sm[2], result);
+
+				int pos = strTemp.find(sm[2]);
+				if (pos != std::string::npos)
+				{
+					std::string str1 = strTemp.substr(0, pos);
+					std::string str2 = strTemp.substr(pos + sm[2].length(), strTemp.length());
+					strTemp = str1 + str2;
+				}
+
             }
+			gcodeStr = strTemp;
         }
         if (std::regex_match(gcodeStr, sm, std::regex(".*thumbnail begin(.*)thumbnail end.*"))) //thumbnail
         {
+			std::string strTemp = gcodeStr;
             getImage(sm[1], result);
+
+			int pos = strTemp.find(sm[1]);
+			if (pos != std::string::npos)
+			{
+				std::string str1 = strTemp.substr(0, pos);
+				std::string str2 = strTemp.substr(pos + sm[1].length(), strTemp.length());
+				strTemp = str1 + str2;
+			}
+			gcodeStr = strTemp;
         }     
 		if (std::regex_match(gcodeStr, sm, std::regex(".*TIME:([0-9]{0,8}).*"))) ////get print time
 		{
@@ -280,20 +352,40 @@ namespace cxsw
 			}
 		}
 
+		int pos1 = gcodeStr.find("M82");
+		int pos2 = gcodeStr.find("M83");
+		int pos3 = gcodeStr.find("G90");
+		int pos4 = gcodeStr.find("G91");
 
-		int ipos1 = gcodeStr.find("M82");
-		int ipos2 = gcodeStr.find("M83");
-		if (ipos2 != std::string::npos && (ipos2 > ipos1))
+		if (std::max(pos1, pos2) > std::max(pos3, pos4)) //M82 M83
 		{
-			parseInfo.relativeExtrude = true;
+			if (pos1 != std::string::npos && (pos2 > pos1))
+			{
+				parseInfo.relativeExtrude = true;
+			}
+		}
+		else //M90 M91
+		{
+			if (pos3 != std::string::npos && (pos4 > pos3))
+			{
+				parseInfo.relativeExtrude = true;
+			}
 		}
 
-		ipos1 = gcodeStr.find("G90");
-		ipos2 = gcodeStr.find("G91");
-		if (ipos2 != std::string::npos && (ipos2 > ipos1))
-		{
-			parseInfo.relativeExtrude = true;
-		}
+
+		//int ipos1 = gcodeStr.find("M82");
+		//int ipos2 = gcodeStr.find("M83");
+		//if (ipos2 != std::string::npos && (ipos2 > ipos1))
+		//{
+		//	parseInfo.relativeExtrude = true;
+		//}
+
+		//ipos1 = gcodeStr.find("G90");
+		//ipos2 = gcodeStr.find("G91");
+		//if (ipos2 != std::string::npos && (ipos2 > ipos1))
+		//{
+		//	parseInfo.relativeExtrude = true;
+		//}
 
 		//float material_diameter = 1.75;
 		//float material_density = 1.24;

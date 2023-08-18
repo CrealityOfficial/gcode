@@ -566,7 +566,7 @@ namespace gcode
                 {
                     width = move.e * material_s / len / h;
                 }
-                if ((len < 0.05 || move.e < 0.1f) && m_gcodeLayerInfos.back().width >0.0f)
+                if ((len < 0.05) && m_gcodeLayerInfos.back().width >0.0f)
                 {
                     width = m_gcodeLayerInfos.back().width;
                 }
@@ -719,7 +719,7 @@ namespace gcode
             width = info.e * material_s / len / h;
         }
 
-        if ((len < 0.05 || info.e < 0.1f) && m_gcodeLayerInfos.back().width > 0.0f)
+        if ((len < 0.05) && m_gcodeLayerInfos.back().width > 0.0f)
         {
             width = m_gcodeLayerInfos.back().width;
         }
