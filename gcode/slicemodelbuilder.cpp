@@ -1104,7 +1104,7 @@ namespace gcode
         tempBaseInfo.steps.push_back((int)m_moves.size() - startNumber);
 
         stepIndexMaps = m_stepIndexMaps;
-        m_stepIndexMaps.clear();
+        //m_stepIndexMaps.clear();
 
         for (GCodeMove& move : m_moves)
         {
