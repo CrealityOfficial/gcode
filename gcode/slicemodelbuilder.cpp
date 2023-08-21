@@ -1101,7 +1101,8 @@ namespace gcode
         //    }
         //}
 
-        tempBaseInfo.steps.push_back((int)m_moves.size() - startNumber);
+        if ((int)m_moves.size() - startNumber)
+            tempBaseInfo.steps.push_back((int)m_moves.size() - startNumber);
 
         stepIndexMaps = m_stepIndexMaps;
         //m_stepIndexMaps.clear();
