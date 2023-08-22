@@ -363,6 +363,14 @@ namespace gcode
     
     void GCodeStruct::checkoutLayerHeight(const std::vector<std::string>& layerLines)
     {
+        if (parseInfo.layerHeight > 0.0f && !parseInfo.adaptiveLayers)
+        {
+            GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+            gcodeLayerInfo.layerHight = parseInfo.layerHeight + 0.00001f - belowZ;
+            m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+            return;
+        }
+
         float height = tempCurrentZ;
         for (auto stepCode : layerLines)
         {
@@ -562,6 +570,7 @@ namespace gcode
 
                 float material_s = PI * (material_diameter * 0.5) * (material_diameter * 0.5);
                 float width = 0.0f;
+
                 if (len != 0 && h != 0 && move.e > 0.0f)
                 {
                     width = move.e * material_s / len / h;

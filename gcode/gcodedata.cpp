@@ -443,6 +443,12 @@ namespace cxsw
 			if (parseInfo.layerHeight >= 50)
 				parseInfo.layerHeight = parseInfo.layerHeight / 1000.0f;
 		}
+		if (regex_match(gcodeStr, "Adaptive Layers", sm))
+		{
+			std::string tStr = sm[1];
+			parseInfo.adaptiveLayers = bool(atoi(tStr.c_str())); //gap
+		}
+
 		parseInfo.screenSize = "Sermoon D3";
 		if (gcodeStr.find("Screen Size:CR-200B Pro") != std::string::npos)
 		{

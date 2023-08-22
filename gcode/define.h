@@ -54,9 +54,10 @@ namespace gcode {
 		float material_diameter = {1.75}; //材料直径
 		float material_density = { 1.24 };  //材料密度
 		float lineWidth;
-		float layerHeight;
+		float layerHeight = {0.0f};
 		float unitPrice;
 		bool spiralMode;
+		bool adaptiveLayers;
 		std::string exportFormat;//QString exportFormat;
 		std::string	screenSize;//QString screenSize;
 
@@ -91,6 +92,7 @@ namespace gcode {
 			beltOffsetY = 0.0f;
 			xf4 = trimesh::fxform();
 			relativeExtrude = false;
+			adaptiveLayers = false;
 		}
 	};
 }  // namespace gcode
