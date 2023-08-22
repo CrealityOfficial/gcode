@@ -561,14 +561,10 @@ namespace gcode
                 float h = m_gcodeLayerInfos.back().layerHight;
 
                 float material_s = PI * (material_diameter * 0.5) * (material_diameter * 0.5);
-                float width = 0.0f;
-                if (len != 0 && h != 0 && move.e > 0.0f)
+                float width = m_gcodeLayerInfos.back().width;
+                if (len >0.0001 && h > 0.0001 && move.e > 0.0f)
                 {
                     width = move.e * material_s / len / h;
-                }
-                if ((len < 0.05) && m_gcodeLayerInfos.back().width >0.0f)
-                {
-                    width = m_gcodeLayerInfos.back().width;
                 }
 
                 //calculate flow
@@ -714,7 +710,7 @@ namespace gcode
 
         float h = m_gcodeLayerInfos.back().layerHight;
         float width = 0.0f;
-        if (len != 0 && h != 0 && info.e > 0.0f)
+        if (len > 0.0001 && h > 0.0001 && info.e > 0.0f)
         {
             width = info.e * material_s / len / h;
         }
@@ -1179,7 +1175,6 @@ namespace gcode
             layerNumberParseSuccess = false;
         }
 
-
         trimesh::vec3 tempEndPos = tempCurrentPos;
         double tempEndE = tempCurrentE;
         SliceLineType tempType = tempCurrentType;
@@ -1212,17 +1207,43 @@ namespace gcode
     }
 
     void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2) {
+        
+        double tempEndE = tempCurrentE;
+        if (e > -999)
+        {
+            if (parseInfo.relativeExtrude)
+                tempEndE += e;
+            else
+                tempEndE = e;
+        }
+        else
+            tempEndE = 0;
+
+
+        trimesh::vec3 tempEndPos = tempCurrentPos;
+        if (point.z > -999)
+        {
+            tempEndPos = point;
+            tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z / 1000.f };
+        }
+        else
+        {
+            tempEndPos.x = point.x;
+            tempEndPos.y = point.y;
+            tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z };
+        }
+
         G2G3Info info;
         info.bIsTravel = true;
         info.isG2 = isG2;
         info.f = tempSpeed;
         info.e = e;
-        info.x = point.x;
-        info.y = point.y;
+        info.x = tempEndPos.x;
+        info.y = tempEndPos.y;
         info.i = i;
         info.j = j;
         info.bIsTravel = (SliceLineType)type != SliceLineType::MoveCombing;
-        info.currentE = tempCurrentE;
+        info.currentE = tempEndE;
         if (e > 0)
         {
             if (!parseInfo.relativeExtrude)
