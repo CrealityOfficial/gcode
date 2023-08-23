@@ -352,21 +352,21 @@ namespace cxsw
 			}
 		}
 
-		int pos1 = gcodeStr.find("M82");
-		int pos2 = gcodeStr.find("M83");
-		int pos3 = gcodeStr.find("G90");
-		int pos4 = gcodeStr.find("G91");
+		int pos1 = gcodeStr.find("M82");// absolute extrusion mode
+		int pos2 = gcodeStr.find("M83");//relative extrusion mode
+		int pos3 = gcodeStr.find("G90");// absolute extrusion mode
+		int pos4 = gcodeStr.find("G91");//relative extrusion mode
 
 		if (std::max(pos1, pos2) > std::max(pos3, pos4)) //M82 M83
 		{
-			if (pos1 != std::string::npos && (pos2 > pos1))
+			if (pos2 != std::string::npos && (pos2 > pos1))
 			{
 				parseInfo.relativeExtrude = true;
 			}
 		}
 		else //M90 M91
 		{
-			if (pos3 != std::string::npos && (pos4 > pos3))
+			if (pos4 != std::string::npos && (pos4 > pos3))
 			{
 				parseInfo.relativeExtrude = true;
 			}
