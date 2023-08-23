@@ -1231,8 +1231,10 @@ namespace gcode
             tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z };
         }
 
+        tempCurrentType = (SliceLineType)type;
+
         G2G3Info info;
-        info.bIsTravel = true;
+        //info.bIsTravel = true;
         info.isG2 = isG2;
         info.f = tempSpeed;
         info.e = e;
@@ -1240,7 +1242,7 @@ namespace gcode
         info.y = tempEndPos.y;
         info.i = i;
         info.j = j;
-        info.bIsTravel = (SliceLineType)type != SliceLineType::MoveCombing;
+        info.bIsTravel = (tempCurrentType == SliceLineType::Travel || tempCurrentType == SliceLineType::React);
         info.currentE = tempCurrentE;
 
         if (e > -999)
