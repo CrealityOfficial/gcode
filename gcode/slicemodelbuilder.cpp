@@ -1192,10 +1192,12 @@ namespace gcode
         GcodeLayerInfo gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
 
         if (e > -999)
+        {
             if (parseInfo.relativeExtrude)
                 tempEndE += e;
             else
                 tempEndE = e;
+        }
 
         if (point.z > -999)
         {
@@ -1216,18 +1218,6 @@ namespace gcode
 
     void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2) {
         
-        double tempEndE = tempCurrentE;
-        if (e > -999)
-        {
-            if (parseInfo.relativeExtrude)
-                tempEndE += e;
-            else
-                tempEndE = e;
-        }
-        else
-            tempEndE = 0;
-
-
         trimesh::vec3 tempEndPos = tempCurrentPos;
         if (point.z > -999)
         {
@@ -1251,16 +1241,17 @@ namespace gcode
         info.i = i;
         info.j = j;
         info.bIsTravel = (SliceLineType)type != SliceLineType::MoveCombing;
-        info.currentE = tempEndE;
-        if (e > 0)
+        info.currentE = tempCurrentE;
+
+        if (e > -999)
         {
             if (!parseInfo.relativeExtrude)
                 info.e = e - tempCurrentE;
             else
                 info.e = e;
-            info.bIsTravel = false;
+
+            info.currentE = e;
         }
-        info.currentE = e;
 
         //TODO
         GCodeStruct::processG23_sub(info, nIndex++, m_stepIndexMaps.back());
