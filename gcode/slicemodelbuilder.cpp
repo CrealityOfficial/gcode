@@ -456,7 +456,7 @@ namespace gcode
                 )
             {
                 //获取速度最大限制
-				std::vector<std::string> strs = stringutil::splitString(stepCod, ":");//stepCode.split(":");
+				std::vector<std::string> strs = stringutil::splitString(stepCode, ":");//stepCode.split(":");
                 if (strs.size() == 2)
                 {
 					std::string componentStr = str_trimmed(strs[1]);
@@ -464,7 +464,7 @@ namespace gcode
                         continue;
 					float speed = tempSpeedMax;
 					float component = std::atof(componentStr.c_str()) * 60;
-					std::max(speed, component);
+                    tempSpeedMax = std::max(speed, component);
                 }
             }
         }
