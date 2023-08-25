@@ -1213,6 +1213,8 @@ namespace gcode
 
         //TODO
         //std::vector<int> stepIndexMap;
+        if(m_stepIndexMaps.empty())
+            m_stepIndexMaps.push_back(std::vector<int>());
         processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex++, m_stepIndexMaps.back(), false);
     }
 
@@ -1256,6 +1258,8 @@ namespace gcode
         }
 
         //TODO
+        if (m_stepIndexMaps.empty())
+            m_stepIndexMaps.push_back(std::vector<int>());
         GCodeStruct::processG23_sub(info, nIndex++, m_stepIndexMaps.back());
     }
 
