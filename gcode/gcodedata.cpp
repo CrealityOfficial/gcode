@@ -435,7 +435,8 @@ namespace cxsw
 
 
 		parseInfo.layerHeight = 0.0;
-		if (regex_match(gcodeStr, "Layer height", sm))
+		if (regex_match(gcodeStr, "Layer Height", sm)
+			|| regex_match(gcodeStr, "Layer height", sm))
 		{
 			std::string tStr = sm[1];
 			parseInfo.layerHeight = atof(tStr.c_str()); //gap
