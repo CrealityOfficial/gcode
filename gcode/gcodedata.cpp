@@ -54,8 +54,8 @@ namespace cxsw
 
 	bool  regex_match(std::string& gcodeStr, std::string key, std::smatch& sm)
 	{
-		std::string temp2 = ".*" + key + ":([0-9]{0,8}).*";
-		std::string temp1 = ".*" + key + ":([-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).*";
+		std::string temp2 = ".*" + key + ":(\\s{0,}[0-9]{0,8}).*";
+		std::string temp1 = ".*" + key + ":(\\s{0,}[-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).*";
 		if (std::regex_match(gcodeStr, sm, std::regex(temp1.c_str())) ||
 			std::regex_match(gcodeStr, sm, std::regex(temp2.c_str())))
 		{
@@ -66,8 +66,8 @@ namespace cxsw
 
 	bool  regex_match_float(std::string& gcodeStr, std::string key, std::smatch& sm)
 	{
-		std::string temp1 = ".*" + key + ":([-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).";
-		std::string temp2 = ".*" + key + ":([-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).*";
+		std::string temp1 = ".*" + key + ":(\\s{0,}[-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).";
+		std::string temp2 = ".*" + key + ":(\\s{0,}[-]{0,1}[0-9]{0,8}\\.[0-9]{0,8}).*";
 		if (std::regex_match(gcodeStr, sm, std::regex(temp1.c_str())) ||
 			std::regex_match(gcodeStr, sm, std::regex(temp2.c_str())))
 		{
@@ -78,61 +78,61 @@ namespace cxsw
 
 	bool  regex_match_time(std::string& gcodeStr, std::smatch& sm, gcode::GCodeParseInfo& parseInfo)
 	{
-		if (std::regex_match(gcodeStr, sm, std::regex(".*OuterWall Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*OuterWall Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.OuterWall = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*InnerWall Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*InnerWall Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.InnerWall = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*Skin Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*Skin Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.Skin = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*Support Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*Support Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.Support = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*SkirtBrim Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*SkirtBrim Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.SkirtBrim = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*Infill Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*Infill Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.Infill = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*InfillSupport Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*InfillSupport Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.SupportInfill = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*Combing Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*Combing Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.MoveCombing = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*Retraction Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*Retraction Time:(\\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
 			parseInfo.timeParts.MoveRetraction = tmp;
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*PrimeTower Time:([0-9]{0,8}).*")))
+		if (std::regex_match(gcodeStr, sm, std::regex(".*PrimeTower Time:(\s{0,}[0-9]{0,8}).*")))
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
@@ -274,7 +274,7 @@ namespace cxsw
 			}
 			gcodeStr = strTemp;
         }     
-		if (std::regex_match(gcodeStr, sm, std::regex(".*TIME:([0-9]{0,8}).*"))) ////get print time
+		if (std::regex_match(gcodeStr, sm, std::regex(".*TIME:\\s{0,}([0-9]{0,8}).*"))) ////get print time
 		{
 			std::string tStr = sm[1];
 			int tmp = atoi(tStr.c_str());
@@ -282,7 +282,7 @@ namespace cxsw
 
 			regex_match_time(gcodeStr, sm, parseInfo);
 		}
-		if (std::regex_match(gcodeStr, sm, std::regex(".*Filament used:([0-9]{0,8}\\.[0-9]{0,8}).*"))) ////get print time
+		if (std::regex_match(gcodeStr, sm, std::regex(".*Filament used:\\s{0,}([0-9]{0,8}\\.[0-9]{0,8}).*"))) ////get print time
 		{
 			std::string tStr = sm[1];
 			float tmp = atof(tStr.c_str());
@@ -434,7 +434,7 @@ namespace cxsw
 		}
 
 
-		parseInfo.layerHeight = 0.1;
+		parseInfo.layerHeight = 0.0;
 		if (regex_match(gcodeStr, "Layer height", sm))
 		{
 			std::string tStr = sm[1];

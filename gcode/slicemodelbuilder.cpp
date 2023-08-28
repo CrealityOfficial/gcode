@@ -382,7 +382,6 @@ namespace gcode
                     bool haveG123 = false;
                     bool haveXY = false;
                     bool haveE = false;
-                    bool haveHeight = false;
                     for (const std::string& it3 : G01Strs)
                     {
                         std::string componentStr = str_trimmed(it3);
@@ -406,19 +405,28 @@ namespace gcode
                             }
                         }
                     }
-                    if (haveG123 && haveXY && haveE && !haveHeight)
+                    if (haveG123 && haveXY && haveE)
                     {
                         height = tempCurrentZ;
-                        haveHeight = true;
+
+                        GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+                        gcodeLayerInfo.layerHight = height + 0.00001f - belowZ;
+                        m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+                        belowZ = height;
+
+                        return;
                     }
                 }
             }
         }
 
-        GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
-        gcodeLayerInfo.layerHight = height + 0.00001f - belowZ;
-        m_gcodeLayerInfos.push_back(gcodeLayerInfo);
-        belowZ = height;
+        if (m_gcodeLayerInfos.empty())
+        {
+            GcodeLayerInfo  gcodeLayerInfo;
+            gcodeLayerInfo.layerHight = 0.1;
+            gcodeLayerInfo.width = 0.4;
+            m_gcodeLayerInfos.push_back(gcodeLayerInfo);
+        }
     }
 
     void GCodeStruct::processPrefixCode(const std::string& stepCod)
