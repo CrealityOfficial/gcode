@@ -640,7 +640,7 @@ namespace gcode
             {
                 tempSpeed = std::atof(componentStr.substr(1).c_str());
             }
-            else if (componentStr[0] == 'E' || componentStr[0] == 'P')
+            else if (componentStr[0] == 'E' || componentStr[0] == 'P' || componentStr[0] == 'V')
             {
 				double e = std::atof(componentStr.substr(1).c_str());
                 if (parseInfo.relativeExtrude)
@@ -824,7 +824,7 @@ namespace gcode
 
 
 			float currentValue = std::atof(G23Str.substr(1).c_str());
-            if (G23Str[0] == 'E')
+            if (G23Str[0] == 'E' || G23Str[0] == 'V')
             {
 				float _e = currentValue;//G23Str.mid(1).toFloat();
                 if (_e > 0)
