@@ -1,18 +1,121 @@
 #include "slicemodelbuilder.h"
 #include "gcode/sliceresult.h"
-//#include "slice/sliceattain.h"
 #include "trimesh2/XForm.h"
-#include "mmesh/trimesh/trimeshutil.h"
-#include "mmesh/trimesh/algrithm3d.h"
 #include <math.h>
-#include "stringutil/util.h"
 #include <regex>
 #include "thumbnail.h"
 #include "gcodedata.h"
 
-
 namespace gcode
 {
+    float getAngelOfTwoVector(const trimesh::vec& pt1, const trimesh::vec& pt2, const trimesh::vec& c)
+    {
+        float theta = atan2(pt1.y - c.y, pt1.x - c.x) - atan2(pt2.y - c.y, pt2.x - c.x);
+        if (theta > M_PIf)
+            theta -= 2 * M_PIf;
+        if (theta < -M_PIf)
+            theta += 2 * M_PIf;
+
+        theta = theta * 180.0 / M_PIf;
+        if (theta < 0)
+        {
+            theta = 360 + theta;
+        }
+        return theta;
+    }
+
+#define ARC_PER_BLOCK 5
+    void getDevidePoint(const trimesh::vec& p0, const trimesh::vec& p1,
+        std::vector<trimesh::vec>& out, float theta, bool clockwise)
+    {
+        //int x = 1, y = 2;//旋转的点
+        //int dx = 1, dy = 1;//被绕着旋转的点
+
+        int count = theta > ARC_PER_BLOCK ? theta / ARC_PER_BLOCK : theta / 2;
+        int angle = theta > ARC_PER_BLOCK ? ARC_PER_BLOCK : theta / 2;
+        //int count = theta / ARC_PER_BLOCK;
+        //int angle = ARC_PER_BLOCK;
+        out.reserve(count);
+        for (int i = 1; i < count; i++)
+        {
+            //if (clockwise)
+            //{
+            //    angle = -15 * i;
+            //}
+            //else
+            //{
+            //    angle = 15 * i;
+            //}
+            ////int angle = 45 * i;//逆时针
+            ////int angle = -15 * i;//顺时针
+            //trimesh::vec _out = p0;
+            //_out.x = (p0.x - p1.x) * cos(angle * PI / 180) - (p0.y - p1.y) * sin(angle * PI / 180) + p1.x;
+            //_out.y = (p0.y - p1.y) * cos(angle * PI / 180) + (p0.x - p1.x) * sin(angle * PI / 180) + p1.y;
+            trimesh::vec _out = p0;
+            if (clockwise)
+            {
+                angle = ARC_PER_BLOCK * i;
+                _out.x = (p1.x - p0.x) * cos(angle * M_PIf / 180) + (p1.y - p0.y) * sin(angle * M_PIf / 180) + p0.x;
+                _out.y = (p1.y - p0.y) * cos(angle * M_PIf / 180) - (p1.x - p0.x) * sin(angle * M_PIf / 180) + p0.y;
+            }
+            else
+            {
+                angle = ARC_PER_BLOCK * i;
+
+                _out.x = (p1.x - p0.x) * cos(angle * M_PIf / 180) - (p1.y - p0.y) * sin(angle * M_PIf / 180) + p0.x;
+                _out.y = (p1.y - p0.y) * cos(angle * M_PIf / 180) + (p1.x - p0.x) * sin(angle * M_PIf / 180) + p0.y;
+
+            }
+
+            out.push_back(_out);
+        }
+    }
+
+    std::vector<std::string> splitString(const std::string& str, const std::string& delim = ",")
+    {
+        std::vector<std::string> elems;
+        size_t pos = 0;
+        size_t len = str.length();
+        size_t delim_len = delim.length();
+        if (delim_len == 0)
+            return elems;
+        while (pos < len)
+        {
+            int find_pos = str.find(delim, pos);
+            if (find_pos < 0)
+            {
+                std::string t = str.substr(pos, len - pos);
+                if (!t.empty())
+                    elems.push_back(t);
+                break;
+            }
+            std::string t = str.substr(pos, find_pos - pos);
+            if (!t.empty())
+                elems.push_back(t);
+            pos = find_pos + delim_len;
+        }
+        return elems;
+    }
+
+    inline std::string str_trimmed(const std::string& src)
+    {
+        std::string des = src;
+        int lPos = src.find_first_not_of(' ');
+        int rPos = src.find_last_not_of(' ');
+        if (lPos >= 0 && rPos >= 0)
+        {
+            des = src.substr(lPos, rPos - lPos + 1);
+        }
+
+        int lPos2 = src.find_first_not_of('\n');
+        int rPos2 = src.find_last_not_of('\n');
+        if (lPos2 >= 0 && rPos2 >= 0)
+        {
+            return des.substr(lPos2, rPos2 - lPos2 + 1);
+        }
+        return des;
+    }
+
     inline SliceLineType GetLineType(const std::string& strLineType)
     {
         if (strLineType.find(";TYPE:WALL-OUTER") != std::string::npos)
@@ -65,26 +168,6 @@ namespace gcode
         }
     }
 
-	inline std::string str_trimmed(const std::string& src)
-	{
-        std::string des = src;
-		int lPos = src.find_first_not_of(' ');
-		int rPos = src.find_last_not_of(' ');
-        if (lPos>=0 && rPos>=0)
-        {
-            des = src.substr(lPos, rPos - lPos + 1);
-        }
-
-		int lPos2 = src.find_first_not_of('\n');
-		int rPos2 = src.find_last_not_of('\n');
-        if (lPos2 >= 0 && rPos2 >= 0)
-        {
-            return des.substr(lPos2, rPos2 - lPos2 + 1);
-        }
-        return des;
-	}
-
-
     GCodeStruct::GCodeStruct()
         : tempCurrentType(SliceLineType::NoneType)
         , tempNozzleIndex(0)
@@ -103,12 +186,12 @@ namespace gcode
 
     void GCodeStruct::processLayer(const std::string& layerCode, int layer, std::vector<int>& stepIndexMap)
     {
-		std::vector<std::string> layerLines = stringutil::splitString(layerCode,"\n"); //layerCode.split("\n");
+		std::vector<std::string> layerLines = splitString(layerCode,"\n"); //layerCode.split("\n");
 
         int startNumber = (int)m_moves.size();
         if (layerNumberParseSuccess && layerLines.size() > 0)
         {
-			std::vector<std::string> layerNumberStr = stringutil::splitString(layerLines[0],":");
+			std::vector<std::string> layerNumberStr = splitString(layerLines[0],":");
             if (layerNumberStr.size() > 1)
             {
 				int index = std::stoi(layerNumberStr[1].c_str());
@@ -150,7 +233,7 @@ namespace gcode
             || stepCode.find("M107") != std::string::npos)
         {
             GcodeFan gcodeFan = m_fans.size() > 0 ? m_fans.back() : GcodeFan();
-			std::vector<std::string> strs = stringutil::splitString(stepCode," ");
+			std::vector<std::string> strs = splitString(stepCode," ");
 
             float speed = 0.0f;
             int type = 0;
@@ -232,7 +315,7 @@ namespace gcode
             )
         {
             GcodeTemperature gcodeTemperature= m_temperatures.size()>0 ? m_temperatures.back(): GcodeTemperature();
-			std::vector<std::string> strs = stringutil::splitString(stepCode, " ");
+			std::vector<std::string> strs = splitString(stepCode, " ");
 
             float temperature = 0.0f;
             int type = -1;
@@ -248,7 +331,7 @@ namespace gcode
                 }
                 else if (componentStr.find("EXTRUDER_TEMP") != std::string::npos)
                 {
-					std::vector<std::string> strs = stringutil::splitString(componentStr, "=");//QStringList strs = componentStr.split("=");
+					std::vector<std::string> strs = splitString(componentStr, "=");//QStringList strs = componentStr.split("=");
                     if (strs.size() >= 2)
                     {
 						temperature = std::atof(strs[1].c_str()); //strs[1].toFloat();
@@ -259,7 +342,7 @@ namespace gcode
                 else if (componentStr.find("BED_TEMP") != std::string::npos)
                 {
                     
-					std::vector<std::string> strs = stringutil::splitString(componentStr, "=");//QStringList strs = componentStr.split("=");
+					std::vector<std::string> strs = splitString(componentStr, "=");//QStringList strs = componentStr.split("=");
                     if (strs.size() >= 2)
                     {
 						temperature = std::atof(strs[1].c_str()); //strs[1].toFloat();
@@ -345,7 +428,7 @@ namespace gcode
         if (stepCode.find("TIME_ELAPSED") != std::string::npos)
         {
             
-			std::vector<std::string> strs = stringutil::splitString(stepCode, ":");
+			std::vector<std::string> strs = splitString(stepCode, ":");
             if (strs.size() >= 2)
             {
 				float temp = std::atof(strs[1].c_str()) - tempCurrentTime;
@@ -376,7 +459,7 @@ namespace gcode
         {
             if (stepCode.size() > 3)
             {
-                std::vector<std::string> G01Strs = stringutil::splitString(stepCode, " ");
+                std::vector<std::string> G01Strs = splitString(stepCode, " ");
                 if (G01Strs.size() > 0)
                 {
                     bool haveG123 = false;
@@ -431,7 +514,7 @@ namespace gcode
 
     void GCodeStruct::processPrefixCode(const std::string& stepCod)
     {
-		std::vector<std::string> layerLines = stringutil::splitString(stepCod, "\n"); //QStringList layerLines = stepCod.split("\n");
+		std::vector<std::string> layerLines = splitString(stepCod, "\n"); //QStringList layerLines = stepCod.split("\n");
         
 
         for (const std::string& layerLine : layerLines)
@@ -464,7 +547,7 @@ namespace gcode
                 )
             {
                 //获取速度最大限制
-				std::vector<std::string> strs = stringutil::splitString(stepCode, ":");//stepCode.split(":");
+				std::vector<std::string> strs = splitString(stepCode, ":");//stepCode.split(":");
                 if (strs.size() == 2)
                 {
 					std::string componentStr = str_trimmed(strs[1]);
@@ -621,7 +704,7 @@ namespace gcode
 
     void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3)
     {
-        std::vector<std::string> G01Strs = stringutil::splitString(G01Str," ");
+        std::vector<std::string> G01Strs = splitString(G01Str," ");
 
         trimesh::vec3 tempEndPos = tempCurrentPos;
         double tempEndE = tempCurrentE;
@@ -702,11 +785,11 @@ namespace gcode
         std::vector<trimesh::vec> out;
         if (info.isG2)
         {
-            theta = mmesh::getAngelOfTwoVector(tempCurrentPos, circleEndPos, circlePos);
+            theta = getAngelOfTwoVector(tempCurrentPos, circleEndPos, circlePos);
         }
         else
         {
-            theta = mmesh::getAngelOfTwoVector(circleEndPos, tempCurrentPos, circlePos);
+            theta = getAngelOfTwoVector(circleEndPos, tempCurrentPos, circlePos);
         }
         if (bcircles)
         {
@@ -744,7 +827,7 @@ namespace gcode
         }
 
 
-        mmesh::getDevidePoint(circlePos, tempCurrentPos, out, theta, info.isG2);
+        getDevidePoint(circlePos, tempCurrentPos, out, theta, info.isG2);
         out.push_back(circleEndPos);
         float devideE = info.e;
         if (out.size() > 0)
@@ -797,7 +880,7 @@ namespace gcode
 
     void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap)
     {
-        std::vector<std::string> G23Strs = stringutil::splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
+        std::vector<std::string> G23Strs = splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
         //G3 F1500 X118.701 Y105.96 I9.55 J1.115 E7.96039
         //bool isG2 = true;
         //if (G23Code[1] == '3')
