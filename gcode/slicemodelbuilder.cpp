@@ -7,7 +7,7 @@
 #include <math.h>
 #include "stringutil/util.h"
 #include <regex>
-#include "thumbnail/thumbnail.h"
+#include "thumbnail.h"
 #include "gcodedata.h"
 
 

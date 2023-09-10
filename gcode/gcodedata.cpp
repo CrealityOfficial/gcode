@@ -1,6 +1,6 @@
 #include "gcodedata.h"
 #include "gcode/sliceresult.h"
-#include "thumbnail/thumbnail.h"
+#include "thumbnail.h"
 #include <regex>
 
 namespace cxsw
@@ -157,7 +157,7 @@ namespace cxsw
 		std::vector<std::string> prevData;
 		prevData.push_back(tail1);
 		std::vector<unsigned char> decodeData;
-		thumbnail_base2image(prevData, decodeData);
+		gcode::thumbnail_base2image(prevData, decodeData);
 
 		if (decodeData.size())
 		{
