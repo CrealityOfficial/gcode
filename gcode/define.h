@@ -51,8 +51,8 @@ namespace gcode {
 		int printTime;
 		float materialLenth;
 		float materialDensity;//单位面积密度
-		float material_diameter = {1.75}; //材料直径
-		float material_density = { 1.24 };  //材料密度
+		float material_diameter = {1.75f}; //材料直径
+		float material_density = { 1.24f };  //材料密度
 		float lineWidth;
 		float layerHeight = {0.0f};
 		float unitPrice;
@@ -72,9 +72,9 @@ namespace gcode {
 	
 		GCodeParseInfo()
 		{
-			machine_height = 250;
-			machine_width = 220;
-			machine_depth = 220;
+			machine_height = 250.0f;
+			machine_width = 220.0f;
+			machine_depth = 220.0f;
 			printTime = 0;
 			materialLenth = 0.0f;
 			materialDensity = 1.0f;
