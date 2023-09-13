@@ -1116,7 +1116,7 @@ namespace gcode
 
 		for (GCodeMove& move : m_moves)
 		{
-			move.speed = move.speed / tempBaseInfo.speedMax;
+			move.speed = (move.speed - tempBaseInfo.speedMin )/ (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
 		}
 
 		{
