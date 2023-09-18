@@ -395,18 +395,9 @@ namespace gcode
             {
                 if (!m_temperatures.empty())
                 {
-                    bool isRepeat = false;
-                    for (int i=0; i< m_temperatures.size(); i++)
-                    {
-                        if (m_temperatures[i].bedTemperature == gcodeTemperature.bedTemperature
-                            && m_temperatures[i].camberTemperature == gcodeTemperature.camberTemperature
-                            && m_temperatures[i].temperature == gcodeTemperature.temperature)
-                        {
-                            tempTempIndex = i;
-                            isRepeat = true;
-                        }
-                    }
-                    if (!isRepeat)
+                    if (m_temperatures.back().bedTemperature != gcodeTemperature.bedTemperature
+                        || m_temperatures.back().camberTemperature != gcodeTemperature.camberTemperature
+                        || m_temperatures.back().temperature != gcodeTemperature.temperature)
                     {
                         tempTempIndex = m_temperatures.size();
                         m_temperatures.push_back(gcodeTemperature);
@@ -1114,10 +1105,10 @@ namespace gcode
 		}
 
 
-		for (GCodeMove& move : m_moves)
-		{
-			move.speed = (move.speed - tempBaseInfo.speedMin )/ (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
-		}
+		//for (GCodeMove& move : m_moves)
+		//{
+		//	move.speed = (move.speed - tempBaseInfo.speedMin )/ (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
+		//}
 
 		{
 			float minFlow = FLT_MAX, maxFlow = FLT_MIN;
@@ -1202,10 +1193,10 @@ namespace gcode
         stepIndexMaps = m_stepIndexMaps;
         //m_stepIndexMaps.clear();
 
-        for (GCodeMove& move : m_moves)
-        {
-            move.speed = move.speed / tempBaseInfo.speedMax;
-        }
+        //for (GCodeMove& move : m_moves)
+        //{
+        //    move.speed = move.speed / tempBaseInfo.speedMax;
+        //}
 
         {
             float minFlow = FLT_MAX, maxFlow = FLT_MIN;
