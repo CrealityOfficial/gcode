@@ -1000,7 +1000,7 @@ namespace gcode
 
 		for (GCodeMove& move : m_moves)
 		{
-			move.speed = move.speed / tempBaseInfo.speedMax;
+            move.speed = (move.speed - tempBaseInfo.speedMin) / (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
 		}
 
 		{
@@ -1105,10 +1105,10 @@ namespace gcode
 		}
 
 
-		//for (GCodeMove& move : m_moves)
-		//{
-		//	move.speed = (move.speed - tempBaseInfo.speedMin )/ (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
-		//}
+		for (GCodeMove& move : m_moves)
+		{
+			move.speed = (move.speed - tempBaseInfo.speedMin )/ (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
+		}
 
 		{
 			float minFlow = FLT_MAX, maxFlow = FLT_MIN;
@@ -1193,10 +1193,10 @@ namespace gcode
         stepIndexMaps = m_stepIndexMaps;
         //m_stepIndexMaps.clear();
 
-        //for (GCodeMove& move : m_moves)
-        //{
-        //    move.speed = move.speed / tempBaseInfo.speedMax;
-        //}
+        for (GCodeMove& move : m_moves)
+        {
+            move.speed = (move.speed - tempBaseInfo.speedMin) / (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
+        }
 
         {
             float minFlow = FLT_MAX, maxFlow = FLT_MIN;
