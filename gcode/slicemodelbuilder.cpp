@@ -32,7 +32,7 @@ namespace gcode
         //int dx = 1, dy = 1;//被绕着旋转的点
 
         int count = theta > ARC_PER_BLOCK ? theta / ARC_PER_BLOCK : theta / 2;
-        int angle = theta > ARC_PER_BLOCK ? ARC_PER_BLOCK : theta / 2;
+        float angle = theta > ARC_PER_BLOCK ? ARC_PER_BLOCK*1.0f : theta / 2.0f;
         //int count = theta / ARC_PER_BLOCK;
         //int angle = ARC_PER_BLOCK;
         out.reserve(count);
@@ -54,17 +54,15 @@ namespace gcode
             trimesh::vec _out = p0;
             if (clockwise)
             {
-                angle = ARC_PER_BLOCK * i;
-                _out.x = (p1.x - p0.x) * cos(angle * M_PIf / 180) + (p1.y - p0.y) * sin(angle * M_PIf / 180) + p0.x;
-                _out.y = (p1.y - p0.y) * cos(angle * M_PIf / 180) - (p1.x - p0.x) * sin(angle * M_PIf / 180) + p0.y;
+                float _angle = angle * i;
+                _out.x = (p1.x - p0.x) * cos(_angle * M_PIf / 180) + (p1.y - p0.y) * sin(_angle * M_PIf / 180) + p0.x;
+                _out.y = (p1.y - p0.y) * cos(_angle * M_PIf / 180) - (p1.x - p0.x) * sin(_angle * M_PIf / 180) + p0.y;
             }
             else
             {
-                angle = ARC_PER_BLOCK * i;
-
-                _out.x = (p1.x - p0.x) * cos(angle * M_PIf / 180) - (p1.y - p0.y) * sin(angle * M_PIf / 180) + p0.x;
-                _out.y = (p1.y - p0.y) * cos(angle * M_PIf / 180) + (p1.x - p0.x) * sin(angle * M_PIf / 180) + p0.y;
-
+                float _angle = angle * i;
+                _out.x = (p1.x - p0.x) * cos(_angle * M_PIf / 180) - (p1.y - p0.y) * sin(_angle * M_PIf / 180) + p0.x;
+                _out.y = (p1.y - p0.y) * cos(_angle * M_PIf / 180) + (p1.x - p0.x) * sin(_angle * M_PIf / 180) + p0.y;
             }
 
             out.push_back(_out);
@@ -874,8 +872,6 @@ namespace gcode
         std::vector<std::string> G23Strs = splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
         //G3 F1500 X118.701 Y105.96 I9.55 J1.115 E7.96039
         //bool isG2 = true;
-        //if (G23Code[1] == '3')
-        //    isG2 = false;
 
         G2G3Info info;
 
