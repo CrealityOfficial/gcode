@@ -69,10 +69,10 @@ namespace gcode
 		std::string value = "";
 		bool headend = false;
 		unsigned long long int readBytes = 0;
-		char line[1024] = { 0 };
-		while (fileInfo.getline(line, 1024))
-		{
-			std::string temp = line;
+		std::string temp;
+		
+		while (std::getline(fileInfo, temp))
+		{			
 			value += (temp + "\n");
 			readBytes += temp.size();
 			if (tracer && (readBytes % 20000) == 0)
