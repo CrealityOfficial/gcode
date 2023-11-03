@@ -1083,6 +1083,8 @@ namespace gcode
 					layerNumberParseSuccess = false;
 					break;
 				}
+
+                m_tracer->variadicFormatMessage(0, layer);
 			}
 		}
 
