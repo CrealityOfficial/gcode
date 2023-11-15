@@ -24,7 +24,7 @@ namespace gcode
         return theta;
     }
 
-#define ARC_PER_BLOCK 5
+#define ARC_PER_BLOCK 2
     void getDevidePoint(const trimesh::vec& p0, const trimesh::vec& p1,
         std::vector<trimesh::vec>& out, float theta, bool clockwise)
     {
@@ -36,7 +36,7 @@ namespace gcode
         //int count = theta / ARC_PER_BLOCK;
         //int angle = ARC_PER_BLOCK;
         out.reserve(count);
-        for (int i = 1; i < count; i++)
+        for (int i = 1; i < count + 1; i++)
         {
             //if (clockwise)
             //{
