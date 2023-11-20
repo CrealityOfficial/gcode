@@ -4,7 +4,7 @@
 #include <float.h>
 #include <vector>
 #include <map>
-#include "gcode/sliceline.h"
+#include "internal/sliceline.h"
 #include "gcode/sliceresult.h"
 #include "gcode/define.h"
 #include "ccglobal/tracer.h"

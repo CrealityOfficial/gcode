@@ -1,6 +1,6 @@
-#include "gcodedata.h"
+#include "gcode/gcodedata.h"
 #include "gcode/sliceresult.h"
-#include "thumbnail.h"
+#include "gcode/thumbnail.h"
 #include <regex>
 
 namespace cxsw

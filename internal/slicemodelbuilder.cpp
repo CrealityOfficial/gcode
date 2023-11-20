@@ -1,10 +1,10 @@
-#include "slicemodelbuilder.h"
+#include "gcode/slicemodelbuilder.h"
 #include "gcode/sliceresult.h"
 #include "trimesh2/XForm.h"
 #include <math.h>
 #include <regex>
-#include "thumbnail.h"
-#include "gcodedata.h"
+#include "gcode/thumbnail.h"
+#include "gcode/gcodedata.h"
 
 namespace gcode
 {

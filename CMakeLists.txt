@@ -1,4 +1,8 @@
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/gcode/ SRCS)
+__files_group(${CMAKE_CURRENT_SOURCE_DIR}/gcodeprocesslib/ SRCS1)
+__files_group(${CMAKE_CURRENT_SOURCE_DIR}/internal/ SRCS2)
+
+set(SRCS ${SRCS} ${SRCS1} ${SRCS2})		 
 
 __cc_find(trimesh2)
 __assert_target(trimesh2)

@@ -1,4 +1,4 @@
-﻿#include "sliceresult.h"
+﻿#include "gcode/sliceresult.h"
 
 namespace gcode
 {

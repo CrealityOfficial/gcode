@@ -1,4 +1,4 @@
-#include "thumbnail.h"
+#include "gcode/thumbnail.h"
 #include "img2gcode.h"
 
 namespace gcode
