@@ -688,7 +688,13 @@ namespace gcode
         }
 
         tempCurrentPos = tempEndPos;
-        tempCurrentE = tempEndE;
+        if (std::abs(tempEndE - tempCurrentE) > 100000.0f){
+            //TODO :ERROR E!
+            tempCurrentE = tempCurrentE;
+        }
+        else {
+            tempCurrentE = tempEndE;
+        }
     }
 
     void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3)
