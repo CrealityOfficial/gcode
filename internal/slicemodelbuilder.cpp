@@ -688,7 +688,13 @@ namespace gcode
         }
 
         tempCurrentPos = tempEndPos;
-        tempCurrentE = tempEndE;
+        if (std::abs(tempEndE - tempCurrentE) > 100000.0f){
+            //TODO :ERROR E!
+            tempCurrentE = tempCurrentE;
+        }
+        else {
+            tempCurrentE = tempEndE;
+        }
     }
 
     void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3)
@@ -1191,10 +1197,10 @@ namespace gcode
         stepIndexMaps = m_stepIndexMaps;
         //m_stepIndexMaps.clear();
 
-        for (GCodeMove& move : m_moves)
+        /*for (GCodeMove& move : m_moves)
         {
             move.speed = (move.speed - tempBaseInfo.speedMin) / (tempBaseInfo.speedMax - tempBaseInfo.speedMin + 0.01f);
-        }
+        }*/
 
         {
             float minFlow = FLT_MAX, maxFlow = FLT_MIN;
