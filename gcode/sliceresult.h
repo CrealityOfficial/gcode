@@ -24,6 +24,7 @@ namespace gcode
 
         void clear();
         bool load(const std::string& fileName, ccglobal::Tracer* tracer = nullptr);
+        bool load_pressureEquity(const std::string& fileName, ccglobal::Tracer* tracer = nullptr);
 		std::string fileName();
 
 		std::string sliceName();

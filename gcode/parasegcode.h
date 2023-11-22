@@ -8,6 +8,7 @@
 
 namespace gcode
 {
+    void Stringsplit(std::string str, const char split, std::vector<std::string>& res);
     void GCODE_API paraseGcode(const std::string& gCodeFile, std::vector<std::vector<SliceLine3D>>& m_sliceLayers, trimesh::box3& box, std::unordered_map<std::string, std::string>& kvs);
 }
 #endif // PARESEGCODE_1595984973500_H
