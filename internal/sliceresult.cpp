@@ -167,6 +167,15 @@ namespace gcode
 				{
 					value += (";_EXTRUSION_ROLE:5\n");
 				}
+				if (oneLS.at(1) == "SUPPORT-INTERFACE" || oneLS.at(1) == "SUPPORT")
+				{
+					value += (";_EXTRUSION_ROLE:5\n");
+				}
+			}
+			
+			if (temp == ";;retract;;" || temp == ";;retract move;;")
+			{
+				 value += (";_EXTRUSION_ROLE:0\n");
 			}
 
 			value += (temp + "\n");
