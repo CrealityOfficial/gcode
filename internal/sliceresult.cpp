@@ -239,7 +239,7 @@ namespace gcode
 			}
 			float V_now = atof(temp_Velocity.c_str());
 			feed_rate = 2.40556 * V_now * sqrt((rate * rate) / distance_move);   //distance short   rate large
-			if (velocity > 0 && V_now / velocity > 5 && e_gcode < 0.2 && e_gcode > 0.1 && distance_move > 9)
+			if (velocity > 0 && V_now / velocity > 5 && e_gcode < 0.2 && e_gcode > 0.08 && distance_move > 8)
 			{
 				// volumetric extrusion rate = A_filament * F_xyz * L_e / L_xyz [mm^3/min
 				if (feed_rate > 800 && (feed_rate / feed_rate_previous ) > 5.0)
